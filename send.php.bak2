@@ -1,0 +1,167 @@
+<?php
+/**
+ * CEOキッズアカデミー 法人プログラム フォーム受信
+ *   form_type=contact   … 法人お問い合わせ（/houjin/contact/）
+ *   form_type=documents … 稟議資料の請求（/houjin/ と /houjin/documents/）
+ *
+ * 流れ: 検証 → 内部通知メール → 申込者への自動返信（資料のダウンロードリンク）→ サンクスページ
+ * 対策: honeypot / 送信までの経過秒 / IP単位の簡易レート制限 / ヘッダインジェクション除去
+ *
+ * ★設置時にBOSSが設定する項目（AIに渡さない）: TO_EMAIL / FROM_EMAIL / SITE_ORIGIN
+ *   FORM_ENABLED を true にするまで、送信は受け付けずサンクスページにも進まない（=公開ボタン）
+ */
+declare(strict_types=1);
+
+const FORM_ENABLED = false;                         // 公開時に true
+const TO_EMAIL     = '__TO_EMAIL__';                // 内部通知の受信先
+const FROM_EMAIL   = '__FROM_EMAIL__';              // 送信元（設置ドメインのアドレス。SPF/DKIM設定済みのもの）
+const SITE_ORIGIN  = 'https://{{LIVMAKERS_DOMAIN}}'; // 例: https://example.co.jp（末尾スラッシュなし）
+const FROM_NAME    = 'CEOキッズアカデミー 法人プログラム';
+
+/* 自動返信で送る資料。ファイルは houjin/documents/files/ に置く（ファイル名は推測されにくいものに変える） */
+const DOCS = [
+    ['福利厚生規程 追加条文ひな形（Word）', '/houjin/documents/files/__DOC_KITEI__.docx'],
+    ['稟議書ひな形（Word）',               '/houjin/documents/files/__DOC_RINGI__.docx'],
+    ['社内告知文ひな形（Word）',           '/houjin/documents/files/__DOC_KOKUCHI__.docx'],
+    ['協賛企業向け 提案書（PDF）',          '/houjin/documents/files/__DOC_SPONSOR__.pdf'],
+    ['プログラム概要書（PDF）',             '/houjin/documents/files/__DOC_OVERVIEW__.pdf'],
+];
+
+const INTERESTS = [
+    'welfare'   => '福利厚生導入',
+    'sponsor'   => '協賛',
+    'classroom' => '教室運営',
+];
+const EMPLOYEES  = ['〜10名', '〜50名', '〜300名', '300名〜'];
+const SUCCESSION = ['5年以内', '5〜10年', '未定', '該当なし'];
+const SUCCESSOR  = ['決まっている', '候補はいる', 'いない'];
+const REFERRAL   = ['顧問税理士からの紹介', 'メインバンクからの紹介', '紹介ではない'];
+
+/* 戻り先は固定の対応表からだけ選ぶ（オープンリダイレクト防止） */
+const RETURN_TO = [
+    'index'     => './#docs-form',
+    'documents' => 'documents/#docs-form',
+    'contact'   => 'contact/#contact-form',
+];
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') { header('Location: ./'); exit; }
+
+$type   = ($_POST['form_type'] ?? '') === 'contact' ? 'contact' : 'documents';
+$from   = (string)($_POST['return'] ?? '');
+$back   = RETURN_TO[$from] ?? RETURN_TO[$type];
+$thanks = $type === 'contact' ? 'contact/thanks/' : 'documents/thanks/';
+
+function back_with(string $back, array $errors): void {
+    [$path, $hash] = array_pad(explode('#', $back, 2), 2, '');
+    header('Location: ' . $path . '?e=' . rawurlencode(implode(',', $errors)) . ($hash !== '' ? '#' . $hash : ''));
+    exit;
+}
+
+/* 公開前は受け付けない */
+if (!FORM_ENABLED) { back_with($back, ['send']); }
+
+/* honeypot: 埋まっていたら静かに成功扱い */
+if (trim((string)($_POST['website'] ?? '')) !== '') { header('Location: ' . $thanks); exit; }
+
+/* 経過秒: JSがある環境で3秒未満はボットとみなす（JS無し＝空は許容） */
+$elapsed = (string)($_POST['elapsed'] ?? '');
+if ($elapsed !== '' && ctype_digit($elapsed) && (int)$elapsed < 3) { header('Location: ' . $thanks); exit; }
+
+/* 簡易レート制限: 同一IPから10分に5回まで */
+$ip   = (string)($_SERVER['REMOTE_ADDR'] ?? '');
+$rl   = sys_get_temp_dir() . '/houjin_rl_' . hash('sha256', $ip);
+$now  = time();
+$hits = array_filter(array_map('intval', @file($rl, FILE_IGNORE_NEW_LINES) ?: []), fn($t) => $t > $now - 600);
+if (count($hits) >= 5) { back_with($back, ['rate']); }
+$hits[] = $now;
+@file_put_contents($rl, implode("\n", $hits), LOCK_EX);
+
+function one(string $k, int $max = 200): string {
+    $v = trim((string)($_POST[$k] ?? ''));
+    $v = preg_replace('/[\r\n\t\x00-\x1F\x7F]+/u', ' ', $v) ?? '';
+    return mb_substr($v, 0, $max);
+}
+function pick(string $k, array $allowed): string {
+    $v = (string)($_POST[$k] ?? '');
+    return in_array($v, $allowed, true) ? $v : '';
+}
+
+$company = one('company', 120);
+$dept    = one('dept', 120);
+$name    = one('name', 80);
+$email   = one('email', 200);
+$errors  = [];
+
+if ($company === '' || $name === '') $errors[] = 'required';
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'email';
+if (($_POST['consent'] ?? '') !== '1') $errors[] = 'consent';
+
+$lines = [
+    '会社名'      => $company,
+    '部署・役職'  => $dept !== '' ? $dept : '（記入なし）',
+    '氏名'        => $name,
+    'メール'      => $email,
+];
+
+if ($type === 'contact') {
+    $tel = one('tel', 40);
+    $emp = pick('employees', EMPLOYEES);
+    $raw = $_POST['interest'] ?? [];
+    $int = [];
+    foreach ((is_array($raw) ? $raw : []) as $k) {
+        if (is_string($k) && isset(INTERESTS[$k])) $int[] = INTERESTS[$k];
+    }
+    if ($dept === '' || $tel === '' || $emp === '') $errors[] = 'required';
+    if (!$int) $errors[] = 'interest';
+
+    $lines += [
+        '電話'                  => $tel,
+        'ご関心'                => implode('／', $int),
+        '従業員数'              => $emp,
+        '事業承継のご予定'      => pick('succession', SUCCESSION) ?: '（未回答）',
+        'ご後継者の有無'        => pick('successor', SUCCESSOR) ?: '（未回答）',
+        '顧問税理士・メインバンクからのご紹介' => pick('referral', REFERRAL) ?: '（未回答）',
+    ];
+}
+
+if ($errors) { back_with($back, array_values(array_unique($errors))); }
+
+mb_language('Japanese');
+mb_internal_encoding('UTF-8');
+
+$label = $type === 'contact' ? '法人お問い合わせ' : '稟議資料の請求';
+$body  = "CEOキッズアカデミー 法人プログラム「{$label}」フォームより送信がありました。\n\n";
+foreach ($lines as $k => $v) { $body .= "■{$k}\n{$v}\n\n"; }
+$body .= "----\n送信日時: " . date('Y-m-d H:i:s') . "\nIP: {$ip}\n";
+
+$fromHeader = 'From: ' . mb_encode_mimeheader(FROM_NAME) . ' <' . FROM_EMAIL . '>';
+$okInternal = mb_send_mail(TO_EMAIL, "【法人】{$label}：{$company}", $body, $fromHeader . "\r\nReply-To: {$email}");
+
+/* 自動返信（資料配信） */
+$reply  = "{$company}\n{$name} 様\n\n"
+        . "CEOキッズアカデミー 法人プログラムへお問い合わせいただき、ありがとうございます。\n"
+        . ($type === 'contact'
+            ? "内容を確認のうえ、担当者よりご連絡いたします。\n\nあわせて、社内検討用の資料をお送りします。\n\n"
+            : "ご請求いただいた稟議・規程ひな形をお送りします。\n\n");
+foreach (DOCS as [$t, $path]) { $reply .= "・{$t}\n  " . SITE_ORIGIN . $path . "\n"; }
+$reply .= "\n※ひな形は一般的な記載例です。税務・労務上の取扱いは、貴社の顧問税理士・社会保険労務士にご確認ください。\n"
+        . "※本メールは送信専用アドレスから自動でお送りしています。\n\n"
+        . "株式会社CEOキッズアカデミー\n"
+        . "スクール公式サイト: https://ceokidsacademy.com\n";
+/* 自動返信の踏み台対策: 入力された第三者の宛先へ大量送信されないよう、
+   同一宛先へは24時間に1通、全体では1時間に30通まで。超えた分は内部通知だけ届き、担当者が手動で送る */
+$replyKey  = sys_get_temp_dir() . '/houjin_rp_' . hash('sha256', strtolower($email));
+$globalKey = sys_get_temp_dir() . '/houjin_rp_global';
+$recent    = array_filter(array_map('intval', @file($globalKey, FILE_IGNORE_NEW_LINES) ?: []), fn($t) => $t > $now - 3600);
+$sentToSameAddress = is_file($replyKey) && (int)@file_get_contents($replyKey) > $now - 86400;
+if (!$sentToSameAddress && count($recent) < 30) {
+    $recent[] = $now;
+    @file_put_contents($globalKey, implode("\n", $recent), LOCK_EX);
+    @file_put_contents($replyKey, (string)$now, LOCK_EX);
+    @mb_send_mail($email, '【CEOキッズアカデミー 法人プログラム】資料のご案内', $reply, $fromHeader);
+}
+
+if (!$okInternal) { back_with($back, ['send']); }
+
+header('Location: ' . $thanks);
+exit;

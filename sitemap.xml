@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://{{LIVMAKERS_DOMAIN}}/houjin/</loc></url>
+  <url><loc>https://{{LIVMAKERS_DOMAIN}}/houjin/welfare/</loc></url>
+  <url><loc>https://{{LIVMAKERS_DOMAIN}}/houjin/sponsor/</loc></url>
+  <url><loc>https://{{LIVMAKERS_DOMAIN}}/houjin/community/</loc></url>
+  <url><loc>https://{{LIVMAKERS_DOMAIN}}/houjin/documents/</loc></url>
+  <url><loc>https://{{LIVMAKERS_DOMAIN}}/houjin/faq/</loc></url>
+  <url><loc>https://{{LIVMAKERS_DOMAIN}}/houjin/contact/</loc></url>
+  <url><loc>https://{{LIVMAKERS_DOMAIN}}/houjin/legal/</loc></url>
+  <url><loc>https://{{LIVMAKERS_DOMAIN}}/houjin/privacy/</loc></url>
+</urlset>

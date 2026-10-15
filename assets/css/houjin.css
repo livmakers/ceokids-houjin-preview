@@ -1,0 +1,907 @@
+/* ==========================================================================
+   CEOキッズアカデミー 法人プログラム /houjin/ — リデザイン 2026-09-14
+   コンセプト:「教室の熱量を、稟議に耐える誌面で見せる。」
+   借りる構造: 章番号 ／ 左固定キャプション列 ／ 図版としての写真 ／ ヘアライン区切り
+   正本: outputs/redesign-brief.md ・ outputs/redesign-handoff.md
+   単一ファイルで完結（style.css / theme-kids.css は撤去・不参照）。
+   ========================================================================== */
+
+/* ---------------------------------------------------------------- 0. reset */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; overflow-x: clip; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body { overflow-x: clip; }
+img, svg { max-width: 100%; height: auto; display: block; }
+a { color: inherit; }
+ul, ol { list-style: none; }
+button, input, select, textarea { font: inherit; color: inherit; }
+
+/* ---------------------------------------------------------------- 1. fonts */
+@font-face{
+  font-family:"Zen Kaku Gothic New";
+  src:url("../fonts/zenkakugothicnew-bold-sub.woff2") format("woff2");
+  font-weight:700; font-style:normal; font-display:swap;
+}
+@font-face{
+  font-family:"Noto Sans JP";
+  src:url("../fonts/notosansjp-sub.woff2") format("woff2-variations"), url("../fonts/notosansjp-sub.woff2") format("woff2");
+  font-weight:400 700; font-style:normal; font-display:swap;
+}
+@font-face{
+  font-family:"Inter Tight";
+  src:url("../fonts/intertight-sub.woff2") format("woff2-variations"), url("../fonts/intertight-sub.woff2") format("woff2");
+  font-weight:200 600; font-style:normal; font-display:swap;
+}
+/* CLS対策：フォールバック字面合わせ（ローカル游/ヒラギノに寄せる） */
+@font-face{
+  font-family:"ZKG-fallback"; src:local("Hiragino Sans"),local("Yu Gothic Medium"),local("Meiryo");
+  size-adjust:104%; ascent-override:92%; descent-override:14%; line-gap-override:0%;
+}
+@font-face{
+  font-family:"NSJ-fallback"; src:local("Hiragino Sans"),local("Yu Gothic"),local("Meiryo");
+  size-adjust:100%; ascent-override:88%; descent-override:12%; line-gap-override:0%;
+}
+
+/* ---------------------------------------------------------------- 2. tokens */
+:root{
+  --c-ink:#333333; --c-ink-2:#555555; --c-ink-3:#707070;
+  --c-navy:#082579; --c-navy-deep:#061C5E;
+  --c-teal:#12A795; --c-sky:#7EDBE5;
+  --c-orange:#F28520; --c-orange-btn:#C9640F; --c-orange-btn-hover:#A9530C;
+  --c-band:#F0F5FA; --c-gray:#F3F3F3;
+  --c-line:#D3D3D3; --c-line-strong:#AAAAAA;
+  --c-note-bg:#FFF5EB;
+  --c-on-navy:#FFFFFF; --c-on-navy-body:#DCE6F5; --c-on-navy-note:#C9D3EA;
+
+  --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:24px; --s-6:32px;
+  --s-7:48px; --s-8:64px; --s-9:96px; --s-10:128px; --s-11:160px;
+  --sec-y: clamp(44px, 5.4vw, 92px);
+
+  --radius-photo:10px; --radius-btn:5px; --radius-card:10px;
+  --w-content:1280px; --w-text:720px; --gutter:clamp(20px, 5vw, 64px);
+
+  --ease-out: cubic-bezier(.22,.8,.24,1);
+  --ease-inout: cubic-bezier(.65,0,.35,1);
+
+  --f-head:"Zen Kaku Gothic New","ZKG-fallback","Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif;
+  --f-body:"Noto Sans JP","NSJ-fallback","Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;
+  --f-latin:"Inter Tight","Noto Sans JP","NSJ-fallback","Helvetica Neue",Arial,sans-serif;
+
+  --head-h: 72px;
+}
+@media (max-width:1023px){ :root{ --head-h:60px; } }
+
+/* ---------------------------------------------------------------- 3. base typography */
+body{
+  font-family:var(--f-body); font-weight:400;
+  font-size:clamp(15px,.15vw + 14.5px,16px); line-height:1.8; letter-spacing:.03em;
+  color:var(--c-ink); background:#fff;
+  line-break:strict; overflow-wrap:anywhere;
+}
+h1,h2,h3,h4{ font-family:var(--f-head); font-weight:700; color:var(--c-navy); word-break:auto-phrase; text-wrap:balance; }
+h1{ font-size:clamp(30px,2.9vw + 14px,56px); line-height:1.28; letter-spacing:.002em; font-feature-settings:"palt" 1; }
+h2{ font-size:clamp(25px,2.1vw + 14px,46px); line-height:1.32; letter-spacing:.004em; font-feature-settings:"palt" 1; text-align:left; }
+h3{ color:var(--c-ink); font-size:clamp(18px,.6vw + 15px,23px); line-height:1.45; letter-spacing:.012em; font-feature-settings:"palt" 1; margin-bottom:.7em; }
+.serif{ font-family:var(--f-head); font-weight:700; } /* 旧クラス名を見出し書体として維持 */
+p{ }
+b, strong{ font-weight:700; color:inherit; }
+.num, td.num, th.num{ font-family:var(--f-latin); font-variant-numeric:tabular-nums lining-nums; }
+
+.lead{ font-size:clamp(16px,.35vw + 14.5px,19px); line-height:1.85; letter-spacing:.03em; font-weight:500; max-width:38em; color:var(--c-ink); }
+
+/* 章番号（装飾・aria-hidden） */
+.chap-no{
+  display:block; font-family:var(--f-latin); font-weight:200; font-variant-numeric:tabular-nums lining-nums;
+  font-size:clamp(60px,7vw + 24px,136px); line-height:.86; letter-spacing:-.045em; color:var(--c-navy);
+}
+.chap-no--sm{ font-size:40px; font-weight:200; }
+.chap-no--md{ font-size:48px; font-weight:200; }
+
+/* キッカー */
+.sec-label{
+  display:flex; align-items:center; gap:12px;
+  font-family:var(--f-latin); font-weight:600;
+  font-size:clamp(11.5px,.16vw + 11px,12.5px); line-height:1.4; letter-spacing:.24em;
+  color:var(--c-navy); text-transform:uppercase; margin-bottom:var(--s-4);
+}
+.sec-label::before{ content:""; display:inline-block; width:24px; height:1px; background:var(--c-teal); flex:0 0 auto; }
+.chap-head .sec-label::before{ width:48px; }
+
+/* キャプション・注記 */
+figcaption{ font-size:12px; line-height:1.6; letter-spacing:.03em; color:var(--c-ink-3); margin-top:var(--s-2); }
+.tbl-note{ font-size:13px; line-height:1.9; letter-spacing:.03em; color:var(--c-ink-2); max-width:38em; }
+
+/* ヘアライン */
+.hr{ border:0; border-top:1px solid var(--c-line); }
+
+.mt-l{ margin-top:var(--s-7); } .mt-m{ margin-top:var(--s-5); } .mt-s{ margin-top:var(--s-3); }
+
+/* skip link */
+.skip{ position:absolute; left:-9999px; top:0; z-index:100; background:var(--c-navy); color:#fff; padding:12px 20px; font-size:14px; }
+.skip:focus{ left:0; }
+a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visible, select:focus-visible { outline:2px solid var(--c-navy); outline-offset:2px; }
+
+/* ---------------------------------------------------------------- 4. layout / grid */
+.wrap{ max-width:var(--w-content); margin:0 auto; padding:0 var(--gutter); position:relative; z-index:1; }
+.wrap--text{ max-width:calc(var(--w-text) + 2 * var(--gutter)); }
+section{ padding-top:var(--sec-y); position:relative; }
+main > section:last-of-type,
+main > .cta:last-of-type{ padding-bottom:var(--sec-y); }
+.prose{ max-width:38em; }
+.prose p + p{ margin-top:.8em; }
+
+/* 面の帯 */
+.band{ background:var(--c-band); }
+.band-inner{ padding:calc(var(--sec-y) * .82) 0; }
+
+/* 12列グリッド（lg以上で有効） */
+.grid12{ display:grid; grid-template-columns:1fr; gap:var(--s-5); }
+@media (min-width:1024px){ .grid12{ grid-template-columns:repeat(12,1fr); gap:clamp(14px,1.5vw,24px); } }
+.col-1-6{ grid-column:auto; } .col-7-12{ grid-column:auto; }
+@media (min-width:1024px){
+  .col-1-6{ grid-column:1 / 7; }
+  .col-7-12{ grid-column:7 / 13; }
+  .col-1-5{ grid-column:1 / 6; }
+  .col-6-12{ grid-column:6 / 13; }
+  .col-1-4{ grid-column:1 / 5; }
+  .col-5-12{ grid-column:5 / 13; }
+}
+
+/* 章見出し SH-A（積み型） */
+.chap-head{ margin-bottom:clamp(18px,2.2vw,34px); }
+.chap-head .chap-row{ display:flex; align-items:flex-end; gap:var(--s-4); flex-wrap:wrap; margin-bottom:var(--s-3); }
+.chap-head .chap-no{ line-height:.9; }
+.chap-head h2{ margin-top:var(--s-3); }
+.chap-head .lead{ margin-top:var(--s-3); }
+
+/* 章見出し SH-B（左固定型・lg以上 sticky）
+   ★左列は 5fr/7fr（4fr/8fr だと1440pxで幅不足→見出しが句中で4行に割れる事故が起きた）。
+   見出しサイズも列幅に合わせて専用に縮める（SH-Aの大見出しとは別サイズ）。 */
+.chap-split{ display:grid; grid-template-columns:1fr; gap:var(--s-6); }
+@media (min-width:1024px){
+  .chap-split{ grid-template-columns:minmax(0,5fr) minmax(0,7fr); gap:clamp(24px,3vw,48px); align-items:start; }
+  .chap-split > .chap-head{ position:sticky; top:calc(var(--head-h) + 32px); margin-bottom:0; }
+  .chap-split > .chap-head h2{ font-size:clamp(22px,1.1vw + 12px,28px); line-height:1.5; }
+}
+.chap-split > .chap-body{ min-width:0; }
+
+/* ---------------------------------------------------------------- 5. 写真: 比率・焦点ユーティリティ */
+figure.ph{ margin:0; position:relative; }
+figure.ph img{ width:100%; height:100%; object-fit:cover; display:block; border-radius:var(--radius-photo); }
+figure.ph.ph--square-edge img{ border-radius:0; }
+.ar-4-5 img{ aspect-ratio:4/5; } .ar-4-3 img{ aspect-ratio:4/3; } .ar-3-2 img{ aspect-ratio:3/2; }
+.ar-1-1 img{ aspect-ratio:1/1; } .ar-16-9 img{ aspect-ratio:16/9; } .ar-16-10 img{ aspect-ratio:16/10; }
+.ar-5-4 img{ aspect-ratio:5/4; } .ar-21-9 img{ aspect-ratio:21/9; } .ar-3-4 img{ aspect-ratio:3/4; }
+.fp-c img{ object-position:50% 50%; } .fp-t img{ object-position:50% 12%; } .fp-b img{ object-position:50% 88%; }
+.fp-l img{ object-position:12% 50%; } .fp-r img{ object-position:88% 50%; }
+
+/* ---------------------------------------------------------------- 6. ボタン */
+.hero-cta{ display:flex; flex-wrap:wrap; gap:var(--s-3); margin-top:var(--s-5); }
+.btn-primary, .btn-ghost{
+  display:inline-flex; align-items:center; gap:8px; text-decoration:none; text-align:center; justify-content:center;
+  font-family:var(--f-head); font-weight:700; letter-spacing:.08em; border-radius:var(--radius-btn);
+  font-feature-settings:"palt" 1; min-height:44px;
+}
+.btn-primary{
+  background:var(--c-navy); border:2px solid var(--c-navy); color:#fff;
+  font-size:16px; padding:16px 40px; transition:background .2s var(--ease-out), border-color .2s var(--ease-out);
+}
+.btn-primary:hover{ background:var(--c-navy-deep); border-color:var(--c-navy-deep); }
+.btn-ghost{
+  background:#fff; border:1px solid var(--c-navy); color:var(--c-navy);
+  font-size:15px; padding:16px 36px; transition:background .2s var(--ease-out), color .2s var(--ease-out);
+}
+.btn-ghost:hover{ background:var(--c-navy); color:#fff; }
+.btn-primary::after, .btn-ghost::after{ content:"→"; display:inline-block; transition:transform .2s var(--ease-out); }
+@media (hover:hover){
+  .btn-primary:hover::after, .btn-ghost:hover::after{ transform:translateX(4px); }
+}
+/* 問い合わせへ進むボタン＝オレンジ・白19px太字 */
+.btn-primary[href*="contact/"], .btn-primary[href="#contact-form"], .btn-primary.is-cta{
+  background:var(--c-orange-btn); border-color:var(--c-orange-btn); color:#fff;
+  font-size:19px; letter-spacing:.06em;
+}
+.btn-primary[href*="contact/"]:hover, .btn-primary[href="#contact-form"]:hover, .btn-primary.is-cta:hover{
+  background:var(--c-orange-btn-hover); border-color:var(--c-orange-btn-hover);
+}
+.cta-btns{ display:flex; flex-wrap:wrap; justify-content:flex-start; gap:var(--s-3); margin-top:var(--s-5); }
+@media (max-width:767px){ .hero-cta, .cta-btns{ flex-direction:column; align-items:stretch; } }
+
+/* テキストリンク（下線が左から伸びる） */
+.tlink{ position:relative; display:inline-block; color:var(--c-navy); text-decoration:none; font-weight:700; }
+.tlink::after{ content:""; position:absolute; left:0; right:0; bottom:-2px; height:1px; background:var(--c-navy); transform:scaleX(1); transform-origin:left; }
+@media (hover:hover){
+  .tlink::after{ transform:scaleX(0); transition:transform .3s var(--ease-out); }
+  .tlink:hover::after{ transform:scaleX(1); }
+}
+
+/* ---------------------------------------------------------------- 7. header (C0 / M6) */
+.site-head{
+  position:sticky; top:0; z-index:50; background:#fff; border-bottom:1px solid transparent;
+}
+.site-head .wrap{ display:flex; align-items:center; justify-content:space-between; gap:12px; height:var(--head-h); max-width:1440px; }
+.site-head.is-condensed{
+  background:rgba(255,255,255,.94); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+  border-bottom-color:var(--c-line); box-shadow:0 1px 0 var(--c-line);
+}
+.brand{ display:inline-flex; align-items:center; gap:10px; text-decoration:none; min-height:44px; padding:12px 0; flex:0 0 auto; }
+.brand img{ height:44px; width:auto; display:block; transform-origin:left center; transition:transform .24s var(--ease-out); }
+.site-head.is-condensed .brand img{ transform:scale(.88); }
+.brand-name{ display:flex; flex-direction:column; font-family:var(--f-head); font-size:15px; font-weight:700; color:var(--c-ink); line-height:1.3; }
+.brand-name small{ font-size:11px; font-weight:700; color:var(--c-navy); letter-spacing:.12em; }
+@media (max-width:480px){
+  .brand img{ height:34px; }
+  .brand-name .full{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+  .brand-name small{ font-size:11px; }
+}
+
+.gnav{ margin-left:auto; }
+.gnav ul{ display:flex; align-items:center; gap:var(--s-6); }
+.gnav a{
+  position:relative; display:inline-block; padding:6px 0; text-decoration:none;
+  font-family:var(--f-head); font-weight:700; font-size:14px; letter-spacing:.06em; color:var(--c-ink);
+}
+.gnav a::after{ content:""; position:absolute; left:0; right:0; bottom:-2px; height:2px; background:var(--c-teal); transform:scaleX(0); transform-origin:left; }
+@media (hover:hover){ .gnav a:hover::after{ transition:transform .3s var(--ease-out); transform:scaleX(1); } .gnav a:hover{ color:var(--c-navy); } }
+.gnav a[aria-current="page"]{ color:var(--c-navy); }
+.gnav a[aria-current="page"]::after{ transform:scaleX(1); }
+@media (max-width:1023px){ .gnav{ display:none; margin-left:0; } }
+
+.head-right{ display:flex; align-items:center; gap:10px; flex:0 0 auto; }
+.school-btn{
+  display:inline-flex; align-items:center; justify-content:center; min-height:44px; min-width:40px;
+  font-family:var(--f-head); font-size:13px; font-weight:700; letter-spacing:.04em; line-height:1.3; text-align:center;
+  text-decoration:none; color:var(--c-navy); border:1px solid var(--c-navy); border-radius:var(--radius-btn);
+  padding:10px 16px; background:#fff; transition:background .2s var(--ease-out), color .2s var(--ease-out);
+}
+.school-btn .sp{ display:none; }
+@media (hover:hover){
+  .school-btn{ overflow:hidden; }
+  .school-btn:hover{ background:var(--c-navy); color:#fff; }
+}
+.nav-toggle{
+  display:none; background:none; border:1px solid var(--c-line); border-radius:var(--radius-btn);
+  min-height:44px; padding:8px 14px; font-family:var(--f-head); font-size:13px; font-weight:700; letter-spacing:.06em; color:var(--c-ink); cursor:pointer;
+}
+@media (max-width:1023px){ .nav-toggle{ display:inline-flex; align-items:center; } }
+@media (max-width:480px){
+  .site-head .wrap{ padding:0 14px; gap:6px; }
+  .school-btn{ font-size:11px; padding:5px 9px; line-height:1.25; }
+  .school-btn .sp{ display:inline; }
+  .nav-toggle{ padding:8px 10px; font-size:11.5px; }
+}
+
+/* モバイル全画面ナビパネル */
+#gnav-panel{ display:none; }
+@media (max-width:1023px){
+  #gnav-panel{
+    display:block; position:fixed; inset:var(--head-h) 0 0 0; z-index:49; background:#fff;
+    overflow-y:auto; -webkit-overflow-scrolling:touch;
+  }
+  #gnav-panel[hidden]{ display:none; }
+  #gnav-panel ul{ padding:0 var(--gutter); }
+  #gnav-panel li{ border-bottom:1px solid var(--c-line); }
+  #gnav-panel a{
+    display:block; padding:0; height:64px; line-height:64px;
+    font-family:var(--f-head); font-weight:700; font-size:22px; color:var(--c-ink); text-decoration:none;
+  }
+  #gnav-panel a[aria-current="page"]{ color:var(--c-navy); }
+  body.nav-open{ overflow:hidden; }
+}
+
+/* ---------------------------------------------------------------- 8. C1 ヒーロー・分割コラージュ（トップ） */
+.hero{ position:relative; overflow:visible; padding-top:var(--s-7); padding-bottom:var(--s-7); }
+.hero-diag{ position:absolute; top:0; right:0; bottom:0; width:45%; background:var(--c-sky); z-index:0;
+  clip-path:polygon(22% 0, 100% 0, 100% 100%, 0% 100%); }
+@media (max-width:1023px){
+  .hero-diag{ width:100%; clip-path:polygon(0 72%, 100% 58%, 100% 100%, 0 100%); }
+}
+.hero .wrap{ display:grid; grid-template-columns:1fr; gap:var(--s-6); align-items:center; }
+@media (min-width:1024px){ .hero .wrap{ grid-template-columns:minmax(0,6fr) minmax(0,6fr); min-height:min(88vh,820px); } }
+.hero-eyebrow{ font-family:var(--f-latin); font-weight:600; font-size:13px; letter-spacing:.18em; color:var(--c-navy); text-transform:uppercase; margin-bottom:var(--s-5); }
+.hero h1{ margin-top:var(--s-2); }
+.hero-lead{ margin-top:var(--s-6); display:flex; flex-direction:column; gap:.7em; }
+/* 図版コラージュ: 主図版(c1-h1)＋副図版(c1-h2)を意図的に重ねる。副図版は白い台紙で「乗せた」ことを明示する。 */
+.hero-visual{ position:relative; }
+@media (min-width:1024px){ .hero-visual{ height:min(88vh,820px); padding-bottom:56px; } }
+.c1-h1{ position:relative; width:100%; z-index:1; }
+.c1-h2{ display:none; }
+@media (min-width:1024px){
+  .hero-visual{ display:block; }
+  .c1-h1{ position:absolute; top:0; right:0; width:80%; z-index:1; }
+  .c1-h2{
+    display:block; position:absolute; left:0; bottom:0; width:52%; z-index:2;
+    background:#fff; padding:8px; border-radius:14px;
+  }
+  .c1-h2 figure{ margin:0; }
+  .c1-h2 figcaption{ padding:0 2px; font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+}
+@media (min-width:768px) and (max-width:1023px){
+  .c1-h1{ width:70%; margin-left:auto; }
+}
+
+/* ---------------------------------------------------------------- 9. C2 ヒーロー・右端写真（下層） */
+.page-hero{ background:var(--c-band); padding:clamp(56px,6vw,96px) 0 0; overflow:visible; }
+.page-hero.has-photo{ padding-bottom:0; }
+.page-hero .ph2-grid{ display:grid; grid-template-columns:1fr; gap:var(--s-6); }
+.page-hero .ph2-text{ position:relative; overflow:hidden; padding:0 var(--gutter) clamp(32px,3.6vw,56px); }
+.page-hero .ph2-text > *:not(.wm):not(.wm-scrim){ position:relative; z-index:1; }
+.page-hero .ph2-photo{ position:relative; }
+.page-hero .ph2-photo figure{ margin:0; }
+.page-hero .ph2-photo img{ width:100%; aspect-ratio:3/2; object-fit:cover; border-radius:0; display:block; }
+@media (min-width:1024px){
+  /* 左列の左端は「.wrap の内容開始位置」と同じ式で揃える（グリッドはフルブリードなので独自に計算する）。
+     右列（写真）はグリッドの右端＝ビューポート右端まで自然に伸びる（フルブリード）。 */
+  .page-hero .ph2-grid{ grid-template-columns:minmax(0,6fr) minmax(0,6fr); align-items:start; gap:0; }
+  .page-hero .ph2-text{
+    padding-left:calc(max(0px, (100vw - var(--w-content)) / 2) + var(--gutter));
+    padding-right:clamp(24px,4vw,64px);
+    padding-bottom:clamp(56px,6vw,96px);
+    padding-top:var(--s-8);
+    display:flex; flex-direction:column; justify-content:center;
+  }
+  /* height:100% は祖先の高さが確定していないと無効化される（figure が auto のままだと画像が自然
+     サイズに戻り、.ph2-photo だけが引き伸ばされて写真の下に空白ができ、装飾の正方形が宙に浮く事故になる）。
+     .ph2-photo→figure→img まで高さ100%の鎖をつなぐ。 */
+  .page-hero .ph2-photo{ align-self:stretch; min-height:min(78vh,720px); }
+  .page-hero .ph2-photo figure{ height:100%; }
+  .page-hero .ph2-photo img{ height:100%; min-height:min(78vh,720px); aspect-ratio:auto; }
+  /* 写真の左上に寄り添う正方形。下端ではなく上端に付けることでキャプション行と絶対に重ならないようにする。 */
+  .page-hero .ph2-deco{ position:absolute; left:-24px; top:-24px; width:120px; height:120px; background:var(--c-sky); z-index:-1; }
+}
+.page-hero h1{ margin-top:var(--s-2); }
+.page-hero .lead{ margin-top:var(--s-4); }
+.breadcrumb{ font-size:12px; color:var(--c-ink-3); letter-spacing:.04em; margin-bottom:var(--s-5); }
+.breadcrumb ol{ display:flex; flex-wrap:wrap; gap:6px; }
+.breadcrumb li + li::before{ content:"／"; margin-right:6px; color:var(--c-line-strong); }
+.breadcrumb a{ text-decoration:none; color:var(--c-ink-2); display:inline-block; padding:11px 0; margin:-11px 0; }
+@media (hover:hover){ .breadcrumb a:hover{ color:var(--c-navy); } }
+
+/* ---------------------------------------------------------------- 10. C3 ヒーロー・コンパクト */
+.page-hero.is-compact{ padding-bottom:clamp(56px,6vw,96px); }
+.page-hero.is-compact .ph3-grid{ display:grid; grid-template-columns:1fr; gap:var(--s-6); }
+.page-hero.is-compact .ph3-photos{ display:grid; grid-template-columns:1fr; gap:var(--s-4); }
+.page-hero.is-compact .ph3-photos figure:nth-child(2){ display:none; }
+@media (min-width:1024px){
+  .page-hero.is-compact .ph3-grid{ grid-template-columns:minmax(0,7fr) minmax(0,5fr); align-items:start; gap:var(--s-6); }
+  .page-hero.is-compact .ph3-photos{ grid-template-columns:1fr 1fr; }
+  .page-hero.is-compact .ph3-photos figure:nth-child(2){ display:block; margin-top:48px; }
+}
+.page-hero.is-compact .meta{ margin-top:var(--s-5); }
+@media (min-width:1024px){ .page-hero.is-compact .ph3-grid--nophoto{ grid-template-columns:1fr; } }
+.page-hero.is-compact .meta .simple-list{ margin-top:var(--s-3); }
+.page-hero.is-compact .meta:empty{ display:none; }
+
+/* ---------------------------------------------------------------- 11. C4 写真マーキー
+   ★サイト全体で写真を一意にする方針のため、2セット複製方式（同一写真がDOM内に2回出る）は廃止。
+   1セットのみを ease-in-out alternate で往復ドリフトさせる（写真は重複しない）。 */
+.marquee{ width:100%; overflow:hidden; padding-top:0; }
+.marquee-track{ display:flex; gap:16px; width:max-content; will-change:transform; animation:marquee-drift 26s ease-in-out infinite alternate; }
+@media (min-width:768px){ .marquee-track{ animation-duration:34s; } }
+.marquee figure{ flex:0 0 auto; height:clamp(180px,20vw,300px); margin:0; }
+.marquee figure img{ height:100%; width:auto; border-radius:10px; object-fit:cover; display:block; }
+@keyframes marquee-drift{ from{ transform:translateX(0); } to{ transform:translateX(-32%); } }
+@media (hover:hover){ .marquee:hover .marquee-track, .marquee:focus-within .marquee-track{ animation-play-state:paused; } }
+.marquee .cap-row{ padding:var(--s-4) 0 0; }
+.marquee .cap-row p{ font-size:13px; color:var(--c-ink-3); }
+/* 画面外のとき一時停止（性能・JSが付与） */
+.marquee.is-paused .marquee-track{ animation-play-state:paused; }
+/* reduced-motion: 静止グリッド */
+@media (prefers-reduced-motion:reduce){
+  .marquee-track{ animation:none !important; display:grid; grid-template-columns:repeat(4,1fr); gap:16px; width:100%; }
+  .marquee figure:nth-child(n+5){ display:none; }
+  .marquee figure img{ width:100%; height:auto; }
+  .marquee figure{ height:auto; }
+}
+@media (max-width:767px){ .marquee figure{ height:150px; } }
+
+/* ---------------------------------------------------------------- 12. C5 写真カード */
+.cards{ display:grid; grid-template-columns:repeat(2,1fr); gap:clamp(24px,3vw,40px); margin-top:clamp(32px,4vw,64px); }
+.cards--2{ grid-template-columns:repeat(2,1fr); }
+.cards--3{ grid-template-columns:repeat(3,1fr); }
+@media (max-width:900px){ .cards, .cards--2, .cards--3{ grid-template-columns:1fr; } }
+.card{ display:flex; flex-direction:column; text-decoration:none; padding-bottom:var(--s-5); border-bottom:1px solid var(--c-line); }
+.card .card-ph{ margin:0 0 var(--s-5); overflow:hidden; border-radius:var(--radius-photo); }
+.card .card-ph img{ width:100%; aspect-ratio:3/2; object-fit:cover; display:block; transition:transform .7s var(--ease-out); }
+@media (hover:hover){ a.card:hover .card-ph img{ transform:scale(1.04); } }
+.card .k{ font-family:var(--f-latin); font-weight:600; font-size:12px; letter-spacing:.14em; color:var(--c-navy); text-transform:uppercase; }
+.card h3{ margin:var(--s-3) 0 var(--s-3); }
+.card p{ font-size:14.5px; color:var(--c-ink-2); line-height:1.95; flex:1 1 auto; }
+.card .more{ margin-top:var(--s-4); display:inline-flex; align-items:center; gap:6px; font-family:var(--f-head); font-weight:700; font-size:13px; color:var(--c-navy); position:relative; }
+.card .more::after{ content:"→"; transition:transform .2s var(--ease-out); }
+@media (hover:hover){ a.card:hover .more::after{ transform:translateX(4px); } }
+@media (max-width:900px){ .card .card-ph img{ aspect-ratio:16/9; } }
+.card--nophoto{ padding-top:var(--s-5); border-top:1px solid var(--c-line); }
+
+/* ---------------------------------------------------------------- 13. C6 交互の図版行（Z行） */
+.zrows{ margin-top:clamp(32px,4vw,64px); display:flex; flex-direction:column; gap:clamp(64px,8vw,120px); }
+.zrow{ display:grid; grid-template-columns:1fr; gap:var(--s-6); }
+@media (min-width:1024px){
+  .zrow{ grid-template-columns:minmax(0,5fr) minmax(0,7fr); align-items:center; gap:var(--s-8); }
+  .zrow.is-rev{ grid-template-columns:minmax(0,7fr) minmax(0,5fr); }
+  .zrow.is-rev .zrow-ph{ order:2; }
+  .zrow.is-rev .zrow-text{ order:1; }
+}
+.zrow-ph{ margin:0; }
+.zrow-ph img{ aspect-ratio:4/3; }
+@media (min-width:1024px){ .zrow-ph img{ aspect-ratio:5/4; } }
+.zrow-text .chap-no--sm{ margin-bottom:var(--s-3); }
+.zrow--nophoto{ grid-template-columns:1fr; max-width:720px; }
+.zrow--nophoto .zrow-text{ border-top:1px solid var(--c-line); padding-top:var(--s-5); }
+
+/* ---------------------------------------------------------------- 14. C7 ベント写真グリッド */
+.bento{ display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-top:clamp(32px,4vw,64px); }
+.bento figure{ margin:0; }
+.bento img{ border-radius:var(--radius-photo); width:100%; height:100%; object-fit:cover; display:block; }
+.bento-a img{ aspect-ratio:4/3; }
+.bento-b img, .bento-c img{ aspect-ratio:1/1; }
+.bento-d{ grid-column:1 / -1; }
+.bento-d img{ aspect-ratio:16/9; }
+.bento-text{ grid-column:1 / -1; background:#fff; padding:var(--s-6) 0; }
+@media (min-width:1024px){
+  .bento{ grid-template-columns:repeat(12,1fr); grid-auto-rows:minmax(0,1fr); }
+  .bento-a{ grid-column:1 / 7; grid-row:1 / 3; }
+  .bento-a img{ aspect-ratio:4/5; }
+  .bento-b{ grid-column:7 / 10; grid-row:1; }
+  .bento-c{ grid-column:10 / 13; grid-row:1; }
+  .bento-d{ grid-column:7 / 13; grid-row:2; }
+  .bento-d img{ aspect-ratio:2/1; }
+  .bento-text{ grid-column:7 / 13; grid-row:2; padding:0; display:flex; flex-direction:column; justify-content:center; }
+}
+
+/* ---------------------------------------------------------------- 15. C8 図版＋リスト分割 */
+.split-list{ display:grid; grid-template-columns:1fr; gap:var(--s-6); margin-top:clamp(32px,4vw,64px); }
+.split-list--nophoto{ max-width:760px; }
+.split-list .sl-ph img{ aspect-ratio:16/9; }
+@media (min-width:1024px){
+  .split-list{ grid-template-columns:minmax(0,5fr) minmax(0,7fr); gap:var(--s-8); align-items:start; }
+  .split-list .sl-ph{ position:sticky; top:calc(var(--head-h) + 32px); }
+  .split-list .sl-ph img{ aspect-ratio:4/5; }
+}
+.edit-list{ display:flex; flex-direction:column; }
+.edit-list > li{ padding:var(--s-6) 0; border-bottom:1px solid var(--c-line); }
+.edit-list > li:first-child{ border-top:1px solid var(--c-line); }
+.edit-list .el-no{ font-family:var(--f-latin); font-weight:200; font-size:32px; color:var(--c-navy); line-height:1; }
+.edit-list .el-tag{ display:inline-block; font-family:var(--f-latin); font-weight:600; font-size:11px; letter-spacing:.06em; color:var(--c-navy); border:1px solid var(--c-navy); border-radius:3px; padding:2px 8px; margin-bottom:var(--s-3); }
+.edit-list h3{ margin:var(--s-2) 0 var(--s-2); }
+.edit-list h3 a{ display:inline-block; padding:8px 0; margin:-8px 0; }
+.edit-list p{ font-size:14.5px; color:var(--c-ink-2); line-height:1.95; }
+
+/* ---------------------------------------------------------------- 16. C9 表 */
+.tbl-wrap{ overflow-x:auto; margin:var(--s-8) 0 var(--s-3); }
+.tbl-wrap:focus-visible{ outline:2px solid var(--c-navy); outline-offset:2px; }
+.tbl-wrap[tabindex]::after{
+  content:"→ 横にスクロールできます"; display:block; position:sticky; left:0; width:max-content;
+  font-size:11.5px; letter-spacing:.06em; color:var(--c-ink-3); padding:0 0 var(--s-3);
+}
+table{ border-collapse:collapse; width:100%; min-width:560px; font-size:15px; line-height:1.8; }
+caption{ text-align:left; font-size:13px; color:var(--c-ink-2); margin-bottom:var(--s-3); letter-spacing:.03em; }
+th, td{ padding:20px 24px; border-bottom:1px solid var(--c-line); text-align:left; vertical-align:top; }
+thead th{ font-family:var(--f-head); font-size:14px; letter-spacing:.02em; color:var(--c-ink); font-weight:700; background:var(--c-band); border-bottom:2px solid var(--c-navy); white-space:nowrap; }
+tbody th{ font-family:var(--f-head); font-weight:700; color:var(--c-navy); }
+tbody tr:nth-child(even){ background:var(--c-gray); }
+td.num, th.num{ font-family:var(--f-latin); font-weight:600; font-size:20px; color:var(--c-navy); font-variant-numeric:tabular-nums; white-space:nowrap; }
+tfoot th, tfoot td{ border-top:2px solid var(--c-navy); border-bottom:0; font-weight:700; background:var(--c-band); }
+@media (max-width:559px){
+  .tbl-wrap table{ min-width:0; }
+  .tbl-wrap thead{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+  .tbl-wrap caption{ padding:0; }
+  .tbl-wrap tbody tr{ display:block; padding:var(--s-4) 0; border-bottom:1px solid var(--c-line); background:none !important; }
+  .tbl-wrap tbody tr:last-child{ border-bottom:0; }
+  .tbl-wrap tbody th, .tbl-wrap tbody td{ display:block; border-bottom:0; padding:4px 0; }
+  .tbl-wrap tbody th{ font-weight:700; color:var(--c-navy); }
+  .tbl-wrap td[data-label]{ display:flex; justify-content:space-between; align-items:baseline; gap:16px; }
+  .tbl-wrap td[data-label]::before{ content:attr(data-label); flex:0 0 auto; font-family:var(--f-body); font-weight:400; font-size:12px; color:var(--c-ink-3); }
+}
+
+/* ---------------------------------------------------------------- 17. C10 ステップフロー */
+.flow{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:0; margin-top:clamp(32px,4vw,64px); counter-reset:fl; }
+.flow li{ counter-increment:fl; position:relative; padding-right:var(--s-6); }
+.flow li .fl-top{ display:flex; align-items:center; gap:var(--s-3); margin-bottom:var(--s-5); }
+.flow li .fl-no{ font-family:var(--f-latin); font-weight:200; font-size:40px; line-height:1; color:var(--c-navy); flex:0 0 auto; }
+.flow li .fl-no::before{ content:counter(fl,decimal-leading-zero); }
+.flow li .fl-line{ height:1px; background:var(--c-teal); flex:1 1 auto; transform-origin:left; }
+.flow li:last-child .fl-line{ display:none; }
+.flow h3{ margin-bottom:var(--s-2); }
+.flow p{ font-size:14.5px; color:var(--c-ink-2); line-height:1.9; }
+@media (max-width:900px){
+  .flow{ grid-template-columns:1fr; gap:var(--s-6); }
+  .flow li{ padding-right:0; padding-left:var(--s-6); border-left:3px solid var(--c-teal); }
+  .flow li .fl-top{ margin-bottom:var(--s-3); }
+  .flow li .fl-no{ font-size:32px; background:#fff; margin-left:-3px; padding-left:var(--s-3); }
+  .flow li .fl-line{ display:none; }
+}
+
+/* ---------------------------------------------------------------- 18. C11 年代の階段（keisho） */
+.stairs{ margin-top:clamp(32px,4vw,64px); display:grid; grid-template-columns:repeat(5,1fr); gap:var(--s-5); }
+.stairs li{ padding-top:var(--s-5); border-top:2px solid var(--c-navy); }
+.stairs li:nth-child(1){ margin-top:96px; } .stairs li:nth-child(2){ margin-top:72px; }
+.stairs li:nth-child(3){ margin-top:48px; } .stairs li:nth-child(4){ margin-top:24px; } .stairs li:nth-child(5){ margin-top:0; }
+.stairs .age{ display:block; font-family:var(--f-head); font-weight:700; font-size:18px; color:var(--c-navy); }
+.stairs .age small{ display:block; margin-top:var(--s-2); font-family:var(--f-latin); font-weight:600; font-size:11px; letter-spacing:.14em; color:var(--c-ink-2); }
+.stairs p{ margin-top:var(--s-4); font-size:14.5px; color:var(--c-ink-2); line-height:1.95; }
+.stairs p b{ display:block; color:var(--c-ink); font-size:15.5px; margin-bottom:.5em; }
+@media (max-width:900px){
+  .stairs{ grid-template-columns:1fr; gap:var(--s-5); }
+  .stairs li{ margin-top:0 !important; border-top:0; border-left:3px solid var(--c-teal); padding-top:0; padding-left:var(--s-5); }
+}
+
+/* ---------------------------------------------------------------- 19. C12 フェーズ・写真付き3列（community） */
+.phases{ display:grid; grid-template-columns:1fr; gap:var(--s-8); margin-top:clamp(32px,4vw,64px); }
+@media (min-width:768px){ .phases{ grid-template-columns:repeat(3,1fr); gap:var(--s-6); } }
+.phase{ position:relative; }
+.phase .ph{ margin:0 0 var(--s-5); }
+.phase .ph img{ aspect-ratio:4/3; }
+.phase-k{ font-family:var(--f-latin); font-weight:600; font-size:12px; letter-spacing:.14em; color:var(--c-navy); text-transform:uppercase; }
+.phase h3{ margin:var(--s-3) 0 var(--s-2); }
+.phase p{ font-size:14.5px; color:var(--c-ink-2); line-height:1.95; }
+@media (min-width:768px){
+  .phase:not(:last-child)::after{
+    content:""; position:absolute; top:calc(4/3*((100% - var(--s-6)) / 1) / 100 * 0 + 0px); display:none;
+  }
+}
+.phase-arrow{ display:none; }
+@media (min-width:768px){
+  .phase-arrow{ display:block; position:absolute; top:calc(50% - 40px); right:calc(-1 * var(--s-6) / 2 - .5px); width:1px; height:80px; background:var(--c-teal); }
+}
+
+/* ---------------------------------------------------------------- 20. C13 写真CTA分割 */
+.photo-cta{ background:var(--c-band); padding-top:0; }
+.photo-cta:last-of-type{ padding-bottom:0; }
+.photo-cta-inner{ display:grid; grid-template-columns:1fr; gap:var(--s-6); padding:var(--sec-y) 0; align-items:center; }
+@media (min-width:1024px){ .photo-cta-inner{ grid-template-columns:minmax(0,6fr) minmax(0,6fr); gap:var(--s-8); } }
+.photo-cta .pc-ph img{ aspect-ratio:16/9; }
+@media (min-width:1024px){ .photo-cta .pc-ph img{ aspect-ratio:3/2; } }
+.photo-cta .pc-text .lead{ margin-top:var(--s-4); }
+.photo-cta .pc-text .hero-cta{ margin-top:var(--s-6); }
+
+/* ---------------------------------------------------------------- 21. C14 ステートメント帯（写真＋ネイビー覆い） */
+.statement{ position:relative; width:100%; overflow:hidden; height:clamp(360px,36vw,520px); }
+.statement .st-ph{ position:absolute; inset:0; margin:0; }
+.statement .st-ph img{ width:100%; height:100%; object-fit:cover; border-radius:0; }
+.statement .st-overlay{
+  position:absolute; inset:0;
+  background:linear-gradient(90deg, rgba(6,28,94,.92) 0 46%, rgba(6,28,94,.55) 70%, rgba(6,28,94,.20) 100%);
+}
+.statement .st-body{ position:relative; z-index:1; height:100%; display:flex; align-items:center; }
+.statement .st-text{ max-width:560px; color:#fff; padding:0 var(--gutter); }
+.statement .st-text h2, .statement .st-text h3{ color:#fff; }
+.statement .st-text p{ color:var(--c-on-navy-body); margin-top:var(--s-4); }
+.statement .st-cap{ position:absolute; right:var(--gutter); bottom:var(--s-4); font-size:12px; color:var(--c-on-navy-body); z-index:1; }
+@supports (animation-timeline: view()){
+  @media (prefers-reduced-motion:no-preference){
+    .statement .st-ph img{
+      transform:scale(1.12); animation:st-pan linear both; animation-timeline:view(); animation-range:entry 0% exit 100%;
+    }
+    @keyframes st-pan{ from{ translate:0 -6%; } to{ translate:0 6%; } }
+  }
+}
+@media (max-width:767px){
+  .statement{ height:auto; overflow:visible; background:none; }
+  .statement .st-overlay{ display:none; }
+  .statement .st-ph{ position:relative; }
+  .statement .st-ph img{ aspect-ratio:16/9; }
+  .statement .st-body{ display:block; background:var(--c-navy); height:auto; }
+  .statement .st-text{ max-width:none; padding:var(--s-7) var(--gutter); }
+  .statement .st-cap{ position:static; display:block; padding:0 var(--gutter) var(--s-3); background:var(--c-navy); }
+}
+
+/* ---------------------------------------------------------------- 22. C15 フォームパネル */
+section.apply{ padding:0; }
+.apply{ position:relative; overflow:hidden; background:var(--c-navy); color:#fff; }
+
+/* ---- 透かし写真（装飾）: ネイビー面/明るい面の背後に敷く。inline styleを使わずclassのみで実装 ---- */
+.wm{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; pointer-events:none; border-radius:0; opacity:.45; }
+.wm--navy{ opacity:.34; }
+.wm-scrim{ position:absolute; inset:0; z-index:0; pointer-events:none; }
+.wm-scrim--light{ background:linear-gradient(120deg, rgba(255,255,255,.72) 0%, rgba(255,255,255,.32) 55%, rgba(255,255,255,.12) 100%); }
+.wm-scrim--navy{ background:linear-gradient(120deg, rgba(6,28,94,.74) 0%, rgba(6,28,94,.44) 55%, rgba(6,28,94,.22) 100%); }
+@media (max-width:768px){ .wm{ opacity:.20 !important; } }
+.apply-grid{ display:grid; grid-template-columns:1fr; gap:var(--s-7); padding:var(--sec-y) 0; }
+@media (min-width:1024px){ .apply-grid{ grid-template-columns:minmax(0,5fr) minmax(0,7fr); gap:var(--s-8); align-items:start; } }
+.apply-left .sec-label{ color:var(--c-sky); }
+.apply-left .sec-label::before{ background:var(--c-sky); }
+.apply-left h2{ color:#fff; }
+.apply-left .lead{ color:var(--c-on-navy-body); margin-top:var(--s-4); }
+.apply-left .apply-ph{ margin-top:var(--s-6); }
+.apply-left .apply-ph img{ aspect-ratio:4/5; }
+@media (min-width:1024px){ .apply-left .apply-ph{ position:sticky; top:calc(var(--head-h) + 32px); } }
+.apply-card{ background:#fff; border-radius:10px; padding:clamp(24px,3vw,48px); color:var(--c-ink); }
+.apply-card form{ margin-top:0; }
+.fld{ margin-bottom:var(--s-6); border:0; }
+.fld > label, .fld legend{ display:block; font-family:var(--f-head); font-weight:700; font-size:14px; color:var(--c-ink); margin-bottom:var(--s-2); }
+.fld .req{ color:var(--c-orange-btn); font-family:var(--f-latin); font-weight:600; font-size:11px; margin-left:8px; letter-spacing:.06em; }
+.fld .opt{ color:var(--c-ink-3); font-family:var(--f-latin); font-weight:600; font-size:11px; margin-left:8px; letter-spacing:.06em; }
+.fld input[type=text], .fld input[type=email], .fld input[type=tel], .fld select, .fld textarea{
+  width:100%; background:#fff; border:1px solid var(--c-line-strong); color:var(--c-ink); font:inherit;
+  font-size:16px; padding:0 16px; height:52px; border-radius:5px;
+}
+.fld textarea{ padding:14px 16px; height:auto; min-height:140px; line-height:1.9; }
+.fld input:focus, .fld select:focus, .fld textarea:focus{ outline:none; border-color:var(--c-navy); box-shadow:0 0 0 2px var(--c-navy) inset; }
+.fld select option{ color:var(--c-ink); }
+.fld .hint{ font-size:12.5px; color:var(--c-ink-3); margin-top:var(--s-2); line-height:1.8; }
+.checks{ display:flex; flex-wrap:wrap; gap:10px; }
+.checks label{
+  display:inline-flex; align-items:center; gap:8px; min-height:44px; cursor:pointer;
+  border:1px solid var(--c-line-strong); border-radius:999px; padding:6px 16px; font-size:14px; letter-spacing:.02em;
+}
+.checks input{ width:18px; height:18px; accent-color:var(--c-navy); }
+.checks label:has(input:checked){ border-color:var(--c-navy); background:var(--c-band); }
+.fld--quiet{ margin-top:0; padding-top:var(--s-5); border-top:1px solid var(--c-line); }
+.fld--quiet + .fld--quiet{ padding-top:0; border-top:0; margin-top:calc(-1 * var(--s-4)); }
+.hp{ position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
+.consent{ font-size:13px; color:var(--c-ink-2); display:flex; gap:10px; align-items:flex-start; min-height:44px; }
+.consent input{ width:18px; height:18px; margin-top:6px; flex:0 0 auto; accent-color:var(--c-navy); }
+.consent a{ color:var(--c-navy); text-underline-offset:3px; display:inline-block; padding:11px 0; margin:-11px 0; }
+.apply-card .btn-primary{
+  width:100%; background:var(--c-orange-btn); border-color:var(--c-orange-btn); color:#fff;
+  font-size:19px; margin-top:var(--s-3); cursor:pointer;
+}
+.apply-card .btn-primary:hover{ background:var(--c-orange-btn-hover); border-color:var(--c-orange-btn-hover); }
+.form-note{ font-size:12.5px; color:var(--c-ink-3); margin-top:var(--s-5); line-height:1.9; }
+.form-alert{
+  margin-top:var(--s-5); padding:16px 20px; font-size:14px; line-height:1.9; border-radius:8px;
+  border:1px solid var(--c-orange); color:#7A3B12; background:var(--c-note-bg);
+}
+@media (max-width:1023px){ .apply-card{ padding:var(--s-6) 20px; } }
+
+/* ---------------------------------------------------------------- 23. C16 注意書き枠 */
+.disclaimer{
+  border-left:3px solid var(--c-orange); background:var(--c-note-bg);
+  padding:20px 24px; border-radius:0 10px 10px 0; font-size:14px; line-height:1.9; max-width:38em;
+}
+.disclaimer p + p{ margin-top:.8em; }
+
+/* ---------------------------------------------------------------- 24. C17 FAQアコーディオン */
+.faq{ margin-top:clamp(32px,4vw,64px); }
+.faq details{ border-bottom:1px solid var(--c-line); }
+.faq details:first-of-type{ border-top:1px solid var(--c-line); }
+.faq summary{
+  cursor:pointer; list-style:none; position:relative; display:flex; gap:var(--s-4); align-items:baseline;
+  padding:var(--s-5) 40px var(--s-5) 0; min-height:56px;
+}
+.faq summary::-webkit-details-marker{ display:none; }
+.faq summary .q{ font-family:var(--f-latin); font-weight:600; font-size:20px; color:var(--c-navy); flex:0 0 auto; }
+.faq summary .qt{ font-family:var(--f-head); font-weight:700; font-size:16px; line-height:1.6; color:var(--c-ink); }
+.faq summary::after{
+  content:"+"; position:absolute; right:0; top:50%; transform:translateY(-50%); font-size:22px; font-weight:300;
+  color:var(--c-navy); line-height:1; transition:transform .2s var(--ease-out);
+}
+.faq details[open] summary::after{ transform:translateY(-50%) rotate(45deg); }
+.faq .a{ display:flex; gap:var(--s-4); padding:0 40px var(--s-6) 0; }
+.faq .a .aq{ font-family:var(--f-latin); font-weight:600; font-size:14px; color:var(--c-ink-3); flex:0 0 auto; }
+.faq .a p{ font-size:15px; line-height:2.0; color:var(--c-ink-2); max-width:38em; }
+@media (max-width:767px){ .faq summary .qt{ font-size:16px; } }
+
+/* ---------------------------------------------------------------- 25. C18 編集リスト（documents） */
+.doc-list{ display:flex; flex-direction:column; margin-top:clamp(32px,4vw,64px); }
+.doc-list > li{ display:grid; grid-template-columns:auto auto 1fr; gap:var(--s-3) var(--s-5); align-items:baseline; padding:var(--s-6) 0; border-bottom:1px solid var(--c-line); }
+.doc-list > li:first-child{ border-top:1px solid var(--c-line); }
+.doc-list .dl-no{ font-family:var(--f-latin); font-weight:200; font-size:32px; color:var(--c-navy); line-height:1; grid-row:1 / 3; }
+.doc-list .dl-tag{ font-family:var(--f-latin); font-weight:600; font-size:11px; letter-spacing:.06em; color:var(--c-navy); border:1px solid var(--c-navy); border-radius:3px; padding:2px 8px; }
+.doc-list h3{ grid-column:2 / 4; margin:0; }
+.doc-list p{ grid-column:2 / 4; font-size:14.5px; color:var(--c-ink-2); line-height:1.9; margin-top:2px; }
+@media (max-width:640px){
+  .doc-list > li{ grid-template-columns:auto auto; }
+  .doc-list h3, .doc-list p{ grid-column:1 / 3; }
+}
+
+/* ---------------------------------------------------------------- 26. その他: 立場表・簡易リスト・面談ノート等 */
+.simple-list{ margin-top:var(--s-4); max-width:38em; }
+.simple-list li{ position:relative; padding-left:20px; font-size:15px; line-height:2.0; color:var(--c-ink-2); }
+.simple-list li + li{ margin-top:10px; }
+.simple-list li::before{ content:""; position:absolute; left:0; top:16px; width:9px; height:1px; background:var(--c-teal); }
+.simple-list b{ color:var(--c-ink); font-weight:700; }
+
+.split{ display:grid; grid-template-columns:1fr; gap:var(--s-6); align-items:start; }
+@media (min-width:1024px){ .split{ grid-template-columns:minmax(0,7fr) minmax(0,5fr); gap:var(--s-8); align-items:center; } }
+.split > *{ min-width:0; }
+.split .photo img{ aspect-ratio:4/3; }
+
+.notfit{ border-left:3px solid var(--c-navy); background:var(--c-band); padding:clamp(24px,3vw,40px); }
+.notfit h3{ color:var(--c-navy); }
+.notfit p{ margin-top:var(--s-3); font-size:14.5px; color:var(--c-ink-2); line-height:1.95; }
+
+.timeline{ margin-top:clamp(32px,4vw,64px); display:flex; flex-direction:column; gap:0; }
+.tl-item{ padding:var(--s-6) 0; border-top:1px solid var(--c-line); }
+.tl-item:last-child{ border-bottom:1px solid var(--c-line); }
+.tl-step{ font-family:var(--f-latin); font-weight:600; font-size:12px; letter-spacing:.14em; color:var(--c-navy); text-transform:uppercase; }
+.tl-item h3{ margin:var(--s-2) 0 var(--s-2); }
+.tl-item p{ font-size:14.5px; color:var(--c-ink-2); line-height:1.95; max-width:38em; }
+
+/* 3列プレーンテキスト（keisho CONCERNS） */
+.cols3{ display:grid; grid-template-columns:1fr; gap:var(--s-6); margin-top:var(--s-6); }
+@media (min-width:768px){ .cols3{ grid-template-columns:repeat(3,1fr); } }
+.col3-item{ border-top:2px solid var(--c-navy); padding-top:var(--s-4); }
+.col3-item h3{ margin:var(--s-2) 0 var(--s-2); }
+.col3-item p{ font-size:14.5px; color:var(--c-ink-2); line-height:1.95; }
+
+/* 写真の横並び（3枚・keisho CURRICULUM） */
+.photo-row{ display:grid; grid-template-columns:repeat(2,1fr); gap:var(--s-4); }
+@media (min-width:768px){ .photo-row{ grid-template-columns:repeat(4,1fr); } }
+.photo-row figure:last-child{ grid-column:span 2; }
+@media (min-width:768px){ .photo-row figure:last-child{ grid-column:auto; } }
+
+/* 写真2枚の並び（welfare 帯写真） */
+.photo-pair{ display:grid; grid-template-columns:1fr; gap:var(--s-4); }
+@media (min-width:768px){ .photo-pair{ grid-template-columns:1fr 1fr; gap:var(--s-6); } }
+
+/* SH-B 左列の下に敷く写真（welfare REQUIREMENTS。DOM順で既に表より上にくる） */
+.chap-photo{ margin-top:var(--s-8); max-width:320px; }
+@media (max-width:1023px){ .chap-photo{ max-width:none; } .chap-photo img{ aspect-ratio:16/9; } }
+
+.dl .card p{ margin-top:var(--s-2); }
+.ph{ margin:0; }
+.ph--band{ max-width:960px; margin:0 auto; }
+.ph--band img{ aspect-ratio:16/9; }
+
+/* ---------------------------------------------------------------- 27. CTAバー（末尾・全ページ共通）
+   ★写真は廃止（サイト全体で写真を一意にする方針のため、全ページ共通で同じ写真を繰り返し出さない）。
+   ネイビー地はそのまま、中央寄せのテキスト＋ボタンの帯にする。背後には任意で透かし写真(.wm)を敷ける。 */
+.cta-bar{ position:relative; display:flex; background:var(--c-navy); color:#fff; overflow:hidden; }
+.cta-bar-text{ position:relative; z-index:1; flex:1 1 auto; max-width:var(--w-content); margin:0 auto; width:100%; padding:clamp(40px,5vw,72px) var(--gutter); display:flex; flex-direction:column; align-items:center; text-align:center; justify-content:center; gap:var(--s-6); }
+.cta-bar-text p{ display:flex; flex-direction:column; gap:8px; align-items:center; }
+.cta-bar-text b{ font-family:var(--f-head); font-weight:700; font-size:clamp(22px,2vw,30px); line-height:1.4; color:#fff; }
+.cta-bar-text .pc{ font-size:15px; color:var(--c-on-navy-body); line-height:1.9; }
+@media (max-width:767px){
+  body{ padding-bottom:calc(60px + env(safe-area-inset-bottom)); }
+  .cta-bar{ position:fixed; left:0; right:0; bottom:0; z-index:60; background:var(--c-orange-btn); box-shadow:0 -4px 14px rgba(0,0,0,.12); }
+  .cta-bar-text{ padding:0; flex:1 1 auto; }
+  .cta-bar-text p{ display:none; }
+  .cta-bar-text .btn-primary{
+    width:100%; height:60px; padding:0 16px calc(env(safe-area-inset-bottom)); align-self:stretch;
+    border-radius:0; border:0; background:transparent; font-size:19px; letter-spacing:.1em;
+  }
+  .cta-bar-text .btn-primary::after{ display:inline-block; }
+}
+@supports selector(:has(*)){
+  @media (max-width:767px){ body:has(input:focus) .cta-bar{ transform:translateY(100%); transition:transform .2s var(--ease-out); } }
+}
+
+/* ---------------------------------------------------------------- 28. footer（写真帯は廃止。写真一意の方針のため） */
+.site-foot{ background:var(--c-navy); color:#fff; }
+.site-foot .cols{ display:grid; grid-template-columns:1fr; gap:var(--s-7); padding:clamp(56px,6vw,96px) 0; }
+@media (min-width:1024px){ .site-foot .cols{ grid-template-columns:minmax(0,5fr) minmax(0,7fr); gap:var(--s-8); } }
+.foot-org .serif{ font-size:20px; margin-bottom:var(--s-4); }
+.foot-org p{ font-size:14px; color:var(--c-on-navy-body); line-height:2.0; }
+.foot-org p + p{ margin-top:6px; }
+.foot-org a{ color:#fff; text-underline-offset:3px; display:inline-block; padding:2px 0; }
+.site-foot nav ul{ columns:1; }
+@media (min-width:560px){ .site-foot nav ul{ columns:2; column-gap:var(--s-6); } }
+.site-foot nav li{ break-inside:avoid; }
+.site-foot nav a{
+  display:inline-flex; align-items:center; min-height:44px; min-width:40px; padding:0 4px; margin:0 -4px;
+  text-decoration:none; font-family:var(--f-head); font-weight:700; font-size:14px; color:#fff;
+}
+@media (hover:hover){ .site-foot nav a:hover{ text-decoration:underline; text-underline-offset:4px; } }
+.foot-hr{ border-top:1px solid rgba(255,255,255,.2); }
+.foot-tax{ margin-top:var(--s-7); font-size:13px; color:var(--c-on-navy-note); line-height:1.9; max-width:52em; }
+.copyright{ margin-top:var(--s-5); font-family:var(--f-latin); font-size:12px; letter-spacing:.02em; color:var(--c-on-navy-note); padding-bottom:clamp(24px,4vw,56px); }
+.site-foot :focus-visible{ outline-color:#fff; }
+
+/* ---------------------------------------------------------------- 29. 次に読む・CTA帯（ページ内） */
+.cta{ background:var(--c-band); margin-top:0; }
+.cta-inner{ padding:var(--sec-y) 0; max-width:640px; }
+.cta .lead, .cta p{ margin-top:var(--s-4); font-size:15px; color:var(--c-ink-2); line-height:2.0; }
+
+/* ---------------------------------------------------------------- 30. モーション M1/M2/M8: 安全規則つきreveal */
+[data-rv]{ opacity:1; transform:none; }
+.rv-pre{
+  opacity:0; transform:translateY(24px);
+  animation:rv-safe 0s linear 2.5s forwards;
+}
+.rv-in{
+  opacity:1; transform:none;
+  transition:opacity .8s var(--ease-out), transform .8s var(--ease-out);
+}
+@keyframes rv-safe{ to{ opacity:1; transform:none; } }
+.rv-group > :nth-child(1){ transition-delay:0ms; } .rv-group > :nth-child(2){ transition-delay:80ms; }
+.rv-group > :nth-child(3){ transition-delay:160ms; } .rv-group > :nth-child(4){ transition-delay:240ms; }
+.rv-group > :nth-child(5){ transition-delay:320ms; } .rv-group > :nth-child(n+6){ transition-delay:400ms; }
+
+/* M2: 図版のマスク開き */
+figure[data-rv="mask"]{ overflow:hidden; }
+figure[data-rv="mask"] img{ transition:transform 1.4s var(--ease-out); }
+figure[data-rv="mask"].rv-pre{ opacity:1; transform:none; clip-path:inset(0 0 100% 0); animation:rv-mask-safe 0s linear 2.5s forwards; }
+figure[data-rv="mask"].rv-pre img{ transform:scale(1.08); }
+figure[data-rv="mask"].rv-in{ clip-path:inset(0); transition:clip-path 1.0s var(--ease-inout); }
+figure[data-rv="mask"].rv-in img{ transform:scale(1); }
+@keyframes rv-mask-safe{ to{ clip-path:inset(0); } }
+
+/* M8: 線を引く（親の .rv-in に連動） */
+.ln-draw{ transform:scaleX(1); transform-origin:left; }
+.rv-pre .ln-draw{ transform:scaleX(0); }
+.rv-in .ln-draw{ transform:scaleX(1); transition:transform .9s var(--ease-inout) .2s; }
+
+/* ---------------------------------------------------------------- 31. M3 ヒーロー入場（読込時・JS不要） */
+@media (prefers-reduced-motion:no-preference){
+  .c1-h1 img{ animation:hero-scale 1.8s var(--ease-out) both; }
+  .c1-h2{ animation:hero-up 1.2s var(--ease-out) .15s both; }
+  .hero .sec-label::before{ animation:hero-line .6s var(--ease-out) both; }
+  @keyframes hero-scale{ from{ transform:scale(1.06); } to{ transform:scale(1); } }
+  @keyframes hero-up{ from{ transform:translateY(20px); } to{ transform:translateY(0); } }
+  @keyframes hero-line{ from{ transform:scaleX(0); } to{ transform:scaleX(1); } }
+}
+
+/* ---------------------------------------------------------------- 32. reduced motion: 全停止 */
+@media (prefers-reduced-motion:reduce){
+  *, *::before, *::after{ animation:none !important; transition:none !important; }
+  .rv-pre, [data-rv]{ opacity:1 !important; transform:none !important; clip-path:none !important; }
+  figure[data-rv="mask"]{ clip-path:none !important; }
+  figure[data-rv="mask"] img{ transform:none !important; }
+  .ln-draw{ transform:scaleX(1) !important; }
+}
+
+/* ---------------------------------------------------------------- 33. print */
+@media print{
+  .site-head, .cta-bar, .nav-toggle, .marquee{ display:none; }
+  body{ background:#fff; font-size:11pt; line-height:1.6; padding-bottom:0 !important; }
+}
+
+
+/* ==========================================================================
+   2026-10-15 BOSS指示「余白を少なく・アニメと透かしを多用・色調は変えず華やかに・書体も工夫」
+   後置きの上書き層。色の値は一切変更していない。
+   ========================================================================== */
+
+/* ---- 書体の作り込み ---- */
+h1,h2{ font-feature-settings:"palt" 1,"chws" 1; }
+.sec-label{ font-weight:600; }
+.sec-label::before{ transition:width .6s var(--ease-out); }
+.chap-no{ font-feature-settings:"tnum" 1,"lnum" 1; }
+.lead{ text-wrap:pretty; }
+.card h3,.zrow h3{ letter-spacing:.008em; }
+table{ font-feature-settings:"palt" 1; }
+.btn-primary,.btn-ghost,.school-btn{ font-family:var(--f-head); letter-spacing:.06em; }
+
+/* ---- 動きを増やす（既定は表示済み／reduce で全停止） ---- */
+@media (prefers-reduced-motion:no-preference){
+  @supports (animation-timeline: view()){
+    .wm{ animation:wm-pan linear both; animation-timeline:view(); animation-range:cover 0% cover 100%; }
+    @keyframes wm-pan{ from{ transform:scale(1.12) translate3d(0,-2.2%,0); } to{ transform:scale(1.12) translate3d(0,2.2%,0); } }
+    figure.photo img,.zrow figure img,.card-photo img{ animation:ph-rise linear both; animation-timeline:view(); animation-range:cover 0% cover 100%; }
+    @keyframes ph-rise{ from{ transform:scale(1.06) translate3d(0,1.4%,0); } to{ transform:scale(1.06) translate3d(0,-1.4%,0); } }
+  }
+  @supports not (animation-timeline: view()){
+    .wm{ animation:wm-breathe 26s var(--ease-inout) infinite alternate; }
+    @keyframes wm-breathe{ from{ transform:scale(1.06); } to{ transform:scale(1.14) translate3d(0,-1.5%,0); } }
+  }
+  @media (hover:hover) and (min-width:1024px){
+    .card{ transition:transform .45s var(--ease-out), box-shadow .45s var(--ease-out), border-color .45s var(--ease-out); }
+    .card:hover{ transform:translateY(-4px); box-shadow:0 18px 40px -28px rgba(8,37,121,.55); }
+    figure.photo,.card-photo{ overflow:hidden; }
+    figure.photo img,.card-photo img{ transition:transform .7s var(--ease-out); }
+    a:hover > figure.photo img,.card:hover .card-photo img,figure.photo:hover img{ transform:scale(1.045); }
+    .btn-primary,.btn-ghost{ position:relative; overflow:hidden; }
+    .btn-primary::after,.btn-ghost::after{
+      content:""; position:absolute; top:0; bottom:0; left:-60%; width:45%;
+      background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);
+      transform:skewX(-18deg); transition:left .6s var(--ease-out);
+    }
+    .btn-primary:hover::after,.btn-ghost:hover::after{ left:120%; }
+    .gnav a{ background-image:linear-gradient(currentColor,currentColor); background-size:0 1px;
+             background-repeat:no-repeat; background-position:0 100%; transition:background-size .35s var(--ease-out); }
+    .gnav a:hover{ background-size:100% 1px; }
+  }
+  .rv-pre .chap-no{ opacity:0; transform:translateY(14px); }
+  .rv-in .chap-no{ opacity:1; transform:none; transition:opacity .7s var(--ease-out) .05s, transform .7s var(--ease-out) .05s; }
+  .rv-pre .sec-label::before{ width:0; }
+  .rv-in .sec-label::before{ width:24px; }
+  .rv-in .chap-head .sec-label::before{ width:48px; }
+}
+@media (prefers-reduced-motion:reduce){
+  .wm,figure.photo img,.zrow figure img,.card-photo img,.card{ animation:none !important; transition:none !important; transform:none !important; }
+  .rv-pre .chap-no{ opacity:1 !important; transform:none !important; }
+  .rv-pre .sec-label::before{ width:24px !important; }
+}
+
+/* ---- 透かしの濃さ（明るい面 .45 ／ ネイビー面 .34 ／ スマホ .20） ---- */
+.wm{ will-change:transform; }
+.wm--light{ opacity:.45; }
+.wm--navy{ opacity:.34; }
+@media (max-width:768px){ .wm--light,.wm--navy{ opacity:.20; } }
+
+/* 2026-10-15 下層ページ見出し帯の透かし */
+.page-hero.is-compact{ position:relative; overflow:hidden; }
+.page-hero.is-compact > .wm{ z-index:0; }
+.page-hero.is-compact > .wrap{ position:relative; z-index:1; }
