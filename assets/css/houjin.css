@@ -1176,3 +1176,40 @@ h1,h2,h3,h4,.serif{ color:var(--c-ink); }
 .tbl-note,.site-foot,.site-foot a{ color:var(--c-ink-2); }
 tbody th{ color:var(--c-ink); }
 .flow li::before,.tl-step{ color:var(--c-navy); }   /* 小さな装飾ラベルは黄緑のまま */
+
+
+/* ==========================================================================
+   2026-11-14 BOSS指示「文字が小さすぎる・カードが小さすぎる。もっと強調して大きく」
+   ========================================================================== */
+body{ font-size:clamp(16.5px,.3vw + 15.5px,18.5px); line-height:1.85; }
+h1{ font-size:clamp(34px,4vw + 14px,72px); line-height:1.2; letter-spacing:-.005em; }
+h2{ font-size:clamp(28px,2.9vw + 14px,56px); line-height:1.24; }
+h3{ font-size:clamp(20px,.9vw + 16px,28px); line-height:1.4; }
+.lead{ font-size:clamp(17.5px,.6vw + 15.5px,23px); line-height:1.8; max-width:34em; }
+.sec-label{ font-size:clamp(12px,.2vw + 11.5px,14px); letter-spacing:.22em; }
+.chap-no{ font-size:clamp(64px,7.5vw + 24px,150px); }
+.btn-primary,.btn-ghost{ font-size:clamp(16px,.3vw + 15px,19px); padding:20px 44px; border-radius:8px; }
+.cta-bar .btn-primary{ font-size:clamp(17px,.3vw + 16px,21px); }
+.tbl-note,figcaption{ font-size:13.5px; }
+table{ font-size:16px; }
+.card p,.zrow p,.stairs p,.flow p{ font-size:clamp(15.5px,.3vw + 14.5px,17.5px); line-height:1.85; }
+
+/* カードを大きく：3列→2列（広い画面でも2列）、写真も大きく */
+.cards--3{ grid-template-columns:repeat(2,1fr); }
+@media (min-width:1360px){ .cards--3{ grid-template-columns:repeat(3,1fr); } }
+@media (max-width:860px){ .cards--3,.cards--2,.cards{ grid-template-columns:1fr; } }
+.cards{ gap:clamp(20px,2.4vw,34px); margin-top:clamp(24px,3vw,44px); }
+.card{ border-radius:16px; box-shadow:0 14px 36px -26px rgba(60,122,78,.5); }
+.card .card-ph img{ aspect-ratio:16/10; }
+.cards--3 .card .card-ph img{ aspect-ratio:4/3; }
+.card .k,.card h3,.card p,.card .more{ padding-inline:clamp(20px,2vw,30px); }
+.card .k{ margin-top:var(--s-5); font-size:13px; letter-spacing:.14em; }
+.card h3{ margin-top:var(--s-3); }
+.card p{ margin-top:var(--s-3); }
+.card .more{ margin-top:auto; padding-top:var(--s-5); padding-bottom:var(--s-5); font-size:16px; font-weight:700; }
+.card::before{ height:6px; }
+@media (hover:hover) and (min-width:1024px){ .card:hover{ transform:translateY(-6px); } }
+
+/* 5つの立場は見出しを大きく */
+#for-you .card h3{ font-size:clamp(21px,1vw + 17px,30px); }
+#for-you .card p{ font-size:clamp(15.5px,.3vw + 14.5px,17px); }
