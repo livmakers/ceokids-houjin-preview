@@ -905,3 +905,86 @@ table{ font-feature-settings:"palt" 1; }
 .page-hero.is-compact{ position:relative; overflow:hidden; }
 .page-hero.is-compact > .wm{ z-index:0; }
 .page-hero.is-compact > .wrap{ position:relative; z-index:1; }
+
+
+/* ==========================================================================
+   2026-11-14 BOSS指示「余白をもっと少なく・写真を大きく・書体を工夫・アニメと透かしを増やす
+   ・ベースカラーに色を付けて華やかに（事務的すぎる）」
+   色は既存ブランド色（ネイビー／ティール／水色／オレンジ）の範囲で、地に色を敷く。
+   ========================================================================== */
+:root{
+  --c-base:#F4FAFD;            /* 地（白をやめて水色寄りの淡色に） */
+  --c-base-2:#EAF4FA;
+  --c-warm:#FFF4E8;            /* 温かい面 */
+  --c-mint:#EAF7F4;            /* ティール寄りの面 */
+  --sec-y: clamp(34px, 4.2vw, 72px);   /* 余白をさらに圧縮 */
+}
+body{ background:var(--c-base); }
+
+/* ---- 面に色を敷く（事務的な白一色をやめる） ---- */
+.sec--sky{ background:linear-gradient(180deg,var(--c-base-2) 0%,var(--c-base) 72%); }
+.sec--warm{ background:linear-gradient(180deg,var(--c-warm) 0%,var(--c-base) 78%); }
+.sec--mint{ background:linear-gradient(180deg,var(--c-mint) 0%,var(--c-base) 78%); }
+.band{ background:linear-gradient(140deg,var(--c-base-2) 0%,#FDF3E8 100%); }
+.marquee-sec{ background:linear-gradient(180deg,var(--c-base) 0%,var(--c-base-2) 100%); padding-block:var(--s-5); }
+.sec--wm{ position:relative; overflow:hidden; }
+.sec--wm > .wrap{ position:relative; z-index:1; }
+
+/* ---- 写真を大きく ---- */
+.card-ph img{ aspect-ratio:4/3; object-fit:cover; width:100%; }
+.cards{ gap:clamp(16px,2vw,28px); margin-top:clamp(20px,2.4vw,36px); }
+@media (min-width:1024px){ .zrow{ grid-template-columns:minmax(0,6fr) minmax(0,6fr); gap:clamp(28px,3vw,48px); } }
+.marquee{ height:clamp(190px,24vw,330px); }
+.hero-photo img,.ph2-photo img{ width:100%; }
+figure.photo img{ width:100%; }
+
+/* ---- カードを白く浮かせて華やかに（地に色を敷いた分、カードが立つ） ---- */
+.card{
+  background:#fff; border:1px solid rgba(8,37,121,.08); border-bottom:1px solid rgba(8,37,121,.08);
+  border-radius:12px; padding:0 0 var(--s-5); overflow:hidden;
+  box-shadow:0 10px 30px -24px rgba(8,37,121,.45);
+}
+.card .card-ph{ margin:0; }
+.card .k,.card h3,.card p,.card .more{ padding-inline:clamp(16px,1.6vw,22px); }
+.card .k{ display:block; margin-top:var(--s-4); color:var(--c-orange-btn); }
+.card h3{ margin-top:var(--s-2); }
+.card::before{ content:""; display:block; height:4px; width:100%; transform:scaleX(0); transform-origin:left;
+  background:linear-gradient(90deg,var(--c-teal),var(--c-sky)); transition:transform .7s var(--ease-out); }
+.card.rv-in::before,.rv-in .card::before{ transform:scaleX(1); }
+.cards > .card:nth-child(3n+2)::before{ background:linear-gradient(90deg,var(--c-orange),#F6C177); }
+.cards > .card:nth-child(3n+3)::before{ background:linear-gradient(90deg,var(--c-navy),var(--c-teal)); }
+@media (hover:hover) and (min-width:1024px){ .card:hover{ box-shadow:0 22px 46px -26px rgba(8,37,121,.5); } }
+
+/* ---- 3列カード（5つの立場） ---- */
+.cards--3{ grid-template-columns:repeat(3,1fr); }
+@media (max-width:1023px){ .cards--3{ grid-template-columns:repeat(2,1fr); } }
+@media (max-width:639px){ .cards--3,.cards--2,.cards{ grid-template-columns:1fr; } }
+
+/* ---- 書体の強弱 ---- */
+h1{ font-size:clamp(32px,3.4vw + 14px,62px); line-height:1.24; }
+h2{ font-size:clamp(26px,2.4vw + 14px,50px); line-height:1.28; }
+.hl{ font-style:normal; position:relative; color:var(--c-navy); white-space:nowrap; }
+.hl::after{ content:""; position:absolute; left:-.04em; right:-.04em; bottom:.06em; height:.34em; z-index:-1;
+  background:linear-gradient(90deg,rgba(126,219,229,.85),rgba(242,133,32,.5)); border-radius:4px;
+  transform:scaleX(0); transform-origin:left; transition:transform .8s var(--ease-out) .15s; }
+.rv-in .hl::after,h1 .hl::after{ transform:scaleX(1); }
+.sec-label{ color:var(--c-orange-btn); }
+.sec-label::before{ background:var(--c-teal); }
+.chap-no{ background:linear-gradient(135deg,var(--c-navy),var(--c-teal)); -webkit-background-clip:text;
+  background-clip:text; color:transparent; }
+
+/* ---- 動きを増やす ---- */
+@media (prefers-reduced-motion:no-preference){
+  .cards > .card{ transition:transform .5s var(--ease-out), box-shadow .5s var(--ease-out); }
+  @supports (animation-timeline: view()){
+    .card-ph img{ animation:card-zoom linear both; animation-timeline:view(); animation-range:cover 0% cover 100%; }
+    @keyframes card-zoom{ from{ transform:scale(1.08); } to{ transform:scale(1.0); } }
+    .marquee-track{ will-change:transform; }
+  }
+  .btn-primary.is-cta{ animation:cta-pulse 4.5s var(--ease-inout) infinite; }
+  @keyframes cta-pulse{ 0%,88%,100%{ box-shadow:0 0 0 0 rgba(201,100,15,0); } 94%{ box-shadow:0 0 0 10px rgba(201,100,15,.14); } }
+}
+@media (prefers-reduced-motion:reduce){
+  .card::before,.hl::after{ transform:scaleX(1) !important; transition:none !important; }
+  .card-ph img,.btn-primary.is-cta{ animation:none !important; }
+}
