@@ -561,7 +561,7 @@ tfoot th, tfoot td{ border-top:2px solid var(--c-navy); border-bottom:0; font-we
 .statement .st-ph img{ width:100%; height:100%; object-fit:cover; border-radius:0; }
 .statement .st-overlay{
   position:absolute; inset:0;
-  background:linear-gradient(90deg, rgba(6,28,94,.92) 0 46%, rgba(6,28,94,.55) 70%, rgba(6,28,94,.20) 100%);
+  background:linear-gradient(90deg, rgba(34,74,52,.92) 0 46%, rgba(34,74,52,.55) 70%, rgba(34,74,52,.20) 100%);
 }
 .statement .st-body{ position:relative; z-index:1; height:100%; display:flex; align-items:center; }
 .statement .st-text{ max-width:560px; color:#fff; padding:0 var(--gutter); }
@@ -595,7 +595,7 @@ section.apply{ padding:0; }
 .wm--navy{ opacity:.34; }
 .wm-scrim{ position:absolute; inset:0; z-index:0; pointer-events:none; }
 .wm-scrim--light{ background:linear-gradient(120deg, rgba(255,255,255,.72) 0%, rgba(255,255,255,.32) 55%, rgba(255,255,255,.12) 100%); }
-.wm-scrim--navy{ background:linear-gradient(120deg, rgba(6,28,94,.74) 0%, rgba(6,28,94,.44) 55%, rgba(6,28,94,.22) 100%); }
+.wm-scrim--navy{ background:linear-gradient(120deg, rgba(34,74,52,.74) 0%, rgba(34,74,52,.44) 55%, rgba(34,74,52,.22) 100%); }
 @media (max-width:768px){ .wm{ opacity:.20 !important; } }
 .apply-grid{ display:grid; grid-template-columns:1fr; gap:var(--s-7); padding:var(--sec-y) 0; }
 @media (min-width:1024px){ .apply-grid{ grid-template-columns:minmax(0,5fr) minmax(0,7fr); gap:var(--s-8); align-items:start; } }
@@ -868,7 +868,7 @@ table{ font-feature-settings:"palt" 1; }
   }
   @media (hover:hover) and (min-width:1024px){
     .card{ transition:transform .45s var(--ease-out), box-shadow .45s var(--ease-out), border-color .45s var(--ease-out); }
-    .card:hover{ transform:translateY(-4px); box-shadow:0 18px 40px -28px rgba(8,37,121,.55); }
+    .card:hover{ transform:translateY(-4px); box-shadow:0 18px 40px -28px rgba(60,122,78,.55); }
     figure.photo,.card-photo{ overflow:hidden; }
     figure.photo img,.card-photo img{ transition:transform .7s var(--ease-out); }
     a:hover > figure.photo img,.card:hover .card-photo img,figure.photo:hover img{ transform:scale(1.045); }
@@ -940,9 +940,9 @@ figure.photo img{ width:100%; }
 
 /* ---- カードを白く浮かせて華やかに（地に色を敷いた分、カードが立つ） ---- */
 .card{
-  background:#fff; border:1px solid rgba(8,37,121,.08); border-bottom:1px solid rgba(8,37,121,.08);
+  background:#fff; border:1px solid rgba(60,122,78,.08); border-bottom:1px solid rgba(60,122,78,.08);
   border-radius:12px; padding:0 0 var(--s-5); overflow:hidden;
-  box-shadow:0 10px 30px -24px rgba(8,37,121,.45);
+  box-shadow:0 10px 30px -24px rgba(60,122,78,.45);
 }
 .card .card-ph{ margin:0; }
 .card .k,.card h3,.card p,.card .more{ padding-inline:clamp(16px,1.6vw,22px); }
@@ -953,7 +953,7 @@ figure.photo img{ width:100%; }
 .card.rv-in::before,.rv-in .card::before{ transform:scaleX(1); }
 .cards > .card:nth-child(3n+2)::before{ background:linear-gradient(90deg,var(--c-orange),#F6C177); }
 .cards > .card:nth-child(3n+3)::before{ background:linear-gradient(90deg,var(--c-navy),var(--c-teal)); }
-@media (hover:hover) and (min-width:1024px){ .card:hover{ box-shadow:0 22px 46px -26px rgba(8,37,121,.5); } }
+@media (hover:hover) and (min-width:1024px){ .card:hover{ box-shadow:0 22px 46px -26px rgba(60,122,78,.5); } }
 
 /* ---- 3列カード（5つの立場） ---- */
 .cards--3{ grid-template-columns:repeat(3,1fr); }
@@ -988,3 +988,191 @@ h2{ font-size:clamp(26px,2.4vw + 14px,50px); line-height:1.28; }
   .card::before,.hl::after{ transform:scaleX(1) !important; transition:none !important; }
   .card-ph img,.btn-primary.is-cta{ animation:none !important; }
 }
+
+
+/* ==========================================================================
+   2026-11-14 ヒーローを全幅写真＋文字重ねに（レイアウトを変える）
+   ========================================================================== */
+.hero--overlay{
+  position:relative; display:grid; align-items:center; overflow:hidden;
+  min-height:clamp(420px,54vw,640px); padding:clamp(40px,6vw,96px) 0; background:var(--c-navy-deep);
+}
+.hero--overlay .hero-media{ position:absolute; inset:0; z-index:0; }
+.hero--overlay .hero-media figure,.hero--overlay .hero-media picture{ height:100%; margin:0; }
+.hero--overlay .hero-media img{ width:100%; height:100%; object-fit:cover; border-radius:0; }
+.hero--overlay .hero-scrim{
+  position:absolute; inset:0; z-index:1; pointer-events:none;
+  background:linear-gradient(100deg,rgba(34,74,52,.92) 0%,rgba(34,74,52,.78) 38%,rgba(34,74,52,.30) 66%,rgba(34,74,52,.12) 100%);
+}
+.hero--overlay .hero-inner{ position:relative; z-index:2; max-width:var(--w-content); }
+.hero--overlay h1{ color:#fff; max-width:15em; }
+.hero--overlay .hero-eyebrow{ color:var(--c-sky); font-weight:700; letter-spacing:.2em; }
+.hero--overlay .hero-lead{ color:#FFEEDD; max-width:30em; margin-top:var(--s-4); }
+.hero--overlay .hero-lead p + p{ margin-top:.5em; }
+.hero--overlay .hl{ color:#fff; }
+.hero--overlay .hl::after{ background:linear-gradient(90deg,rgba(126,219,229,.55),rgba(242,133,32,.45)); }
+.hero--overlay .btn-ghost{ border-color:#fff; color:#fff; background:transparent; }
+.hero--overlay .btn-ghost:hover{ background:#fff; color:var(--c-navy); }
+@media (max-width:767px){
+  .hero--overlay{ min-height:0; padding:clamp(28px,8vw,56px) 0; }
+  .hero--overlay .hero-scrim{ background:linear-gradient(180deg,rgba(34,74,52,.86) 0%,rgba(34,74,52,.80) 60%,rgba(34,74,52,.86) 100%); }
+  .hero--overlay h1{ max-width:none; }
+}
+@media (prefers-reduced-motion:no-preference){
+  @supports (animation-timeline: view()){
+    .hero--overlay .hero-media img{ animation:hero-pan linear both; animation-timeline:view(); animation-range:cover 0% cover 100%; }
+    @keyframes hero-pan{ from{ transform:scale(1.10) translate3d(0,-1.5%,0); } to{ transform:scale(1.10) translate3d(0,1.5%,0); } }
+  }
+}
+
+
+/* ==========================================================================
+   2026-11-14 BOSS指示「サイト全体を明るい雰囲気に。冷色系は暖色系へ」
+   ネイビー／ティール／水色を、テラコッタ／琥珀／杏色に置き換える。
+   ★変数を差し替えるだけで全体に効く（個別指定の寒色は上で置換済み）。
+   コントラスト: 白文字 on #A8481A = 約5.8:1、on #7E3310 = 約8.9:1（AA適合）
+   ========================================================================== */
+:root{
+  --c-ink:#3B2A20; --c-ink-2:#5B4639; --c-ink-3:#7A6355;
+  --c-navy:#A8481A;        /* 見出し・主ボタン・フッター（暖色の濃色） */
+  --c-navy-deep:#7E3310;
+  --c-teal:#E09200;        /* 罫・下線などの装飾（文字には使わない） */
+  --c-sky:#FFC98A;         /* 面のアクセント */
+  --c-orange:#F28520; --c-orange-btn:#C9640F; --c-orange-btn-hover:#A9530C;
+  --c-band:#FFF3E6; --c-gray:#F7F2EC;
+  --c-line:#E8D7C6; --c-line-strong:#D7BCA3;
+  --c-note-bg:#FFF2E2;
+  --c-on-navy:#FFFFFF; --c-on-navy-body:#FCE6D3; --c-on-navy-note:#F4D5BA;
+  --c-base:#FFFAF4; --c-base-2:#FFF1E2; --c-warm:#FFF2E2; --c-mint:#FFF6EA;
+}
+body{ background:var(--c-base); }
+.sec--sky{ background:linear-gradient(180deg,var(--c-base-2) 0%,var(--c-base) 72%); }
+.sec--mint{ background:linear-gradient(180deg,#FFF0DC 0%,var(--c-base) 78%); }
+.band{ background:linear-gradient(140deg,#FFEFDC 0%,#FFF7EE 100%); }
+.marquee-sec{ background:linear-gradient(180deg,var(--c-base) 0%,var(--c-base-2) 100%); }
+.page-hero{ background:linear-gradient(180deg,var(--c-base-2) 0%,var(--c-base) 85%); }
+.hero--overlay{ background:var(--c-navy-deep); }
+.card::before{ background:linear-gradient(90deg,var(--c-orange),#FFC98A); }
+.cards > .card:nth-child(3n+2)::before{ background:linear-gradient(90deg,#E09200,#FFE0A8); }
+.cards > .card:nth-child(3n+3)::before{ background:linear-gradient(90deg,var(--c-navy),var(--c-orange)); }
+.chap-no{ background:linear-gradient(135deg,var(--c-navy),var(--c-orange)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.hl::after{ background:linear-gradient(90deg,rgba(255,201,138,.95),rgba(242,133,32,.55)); }
+.hero--overlay .hero-eyebrow{ color:#FFD9B0; }
+.hero--overlay .hl::after{ background:linear-gradient(90deg,rgba(255,201,138,.6),rgba(242,133,32,.5)); }
+.disclaimer,.note-box{ background:var(--c-note-bg); }
+thead th{ background:var(--c-band); }
+
+
+/* ==========================================================================
+   2026-11-14 BOSS指示「茶色は暖色じゃない。クリーム系・薄いみどり・黄色系に」
+   地＝クリーム、構造色＝深いみどり、装飾＝薄みどりと黄色。明るく軽い印象に。
+   コントラスト: 白文字 on #3C7A4E ≒ 5.1:1、on #2E6040 ≒ 7.0:1（AA適合）
+   黄色・薄みどりは罫や面だけに使い、文字色にはしない。
+   ========================================================================== */
+:root{
+  --c-ink:#39372C; --c-ink-2:#5B5847; --c-ink-3:#7B7764;
+  --c-navy:#3C7A4E;          /* 見出し・主ボタン・フッター（深いみどり） */
+  --c-navy-deep:#2E6040;
+  --c-teal:#9CCB5A;          /* 罫・下線（装飾） */
+  --c-sky:#FFE59A;           /* 面のアクセント（淡い黄） */
+  --c-orange:#F7C948;        /* 装飾の黄 */
+  --c-orange-btn:#2E6040; --c-orange-btn-hover:#24502F;   /* CTAは深いみどり（白文字7:1） */
+  --c-band:#FBF6E4; --c-gray:#F7F4E9;
+  --c-line:#E6E0C8; --c-line-strong:#CFC8A8;
+  --c-note-bg:#FFF8E1;
+  --c-on-navy:#FFFFFF; --c-on-navy-body:#E8F3E6; --c-on-navy-note:#D2E4CE;
+  --c-base:#FFFDF6; --c-base-2:#F7F3E3; --c-warm:#FFF8E6; --c-mint:#F2F7E6;
+}
+body{ background:var(--c-base); }
+.sec--sky{ background:linear-gradient(180deg,#F4F7E6 0%,var(--c-base) 72%); }
+.sec--mint{ background:linear-gradient(180deg,#F2F7E6 0%,var(--c-base) 78%); }
+.sec--warm{ background:linear-gradient(180deg,#FFF8E1 0%,var(--c-base) 78%); }
+.band{ background:linear-gradient(140deg,#F3F7E4 0%,#FFFBEC 100%); }
+.marquee-sec{ background:linear-gradient(180deg,var(--c-base) 0%,#F7F3E3 100%); }
+.page-hero{ background:linear-gradient(180deg,#F4F7E6 0%,var(--c-base) 85%); }
+.hero--overlay{ background:var(--c-navy-deep); }
+.hero--overlay .hero-eyebrow{ color:#FFE59A; }
+.hero--overlay .hero-lead{ color:#EDF6EA; }
+.card::before{ background:linear-gradient(90deg,var(--c-teal),var(--c-sky)); }
+.cards > .card:nth-child(3n+2)::before{ background:linear-gradient(90deg,#F7C948,#FFF0B8); }
+.cards > .card:nth-child(3n+3)::before{ background:linear-gradient(90deg,var(--c-navy),var(--c-teal)); }
+.chap-no{ background:linear-gradient(135deg,var(--c-navy),#C7D94F); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.hl::after{ background:linear-gradient(90deg,rgba(255,229,154,.95),rgba(156,203,90,.6)); }
+.hero--overlay .hl::after{ background:linear-gradient(90deg,rgba(255,229,154,.55),rgba(156,203,90,.45)); }
+.sec-label{ color:var(--c-navy); }
+.sec-label::before{ background:var(--c-teal); }
+.card .k{ color:var(--c-navy); }
+thead th{ background:var(--c-band); }
+.disclaimer{ background:var(--c-note-bg); border-left-color:var(--c-orange); }
+
+
+/* ==========================================================================
+   2026-11-14 BOSS指示「緑でも黄緑。その色は暗すぎ」
+   ・構造色を黄緑へ（#5E9220 / 文字・ボタンに使える濃さは保つ）
+   ・濃紺・深緑の“暗い面”をやめ、明るい面＋濃い文字に置き換える（ヒーロー／CTA／フォーム／フッター）
+   コントラスト: 白文字 on #5E9220 ≒ 4.6:1（ボタン・大きい文字）／本文の濃い文字は #33401C（12:1超）
+   ========================================================================== */
+:root{
+  --c-navy:#5E9220;            /* 見出し・主ボタン（黄緑） */
+  --c-navy-deep:#4C7A18;
+  --c-teal:#A8D85B; --c-sky:#FFF2A8; --c-orange:#F7C948;
+  --c-orange-btn:#5E9220; --c-orange-btn-hover:#4C7A18;
+  --c-ink:#33401C; --c-ink-2:#55603C; --c-ink-3:#77815E;
+  --c-band:#F1F8DF; --c-base:#FFFEF7; --c-base-2:#F5FAE6;
+  --c-line:#E3EACB; --c-line-strong:#CBD7A8;
+}
+h1,h2,h3,h4{ color:var(--c-navy); }
+h3{ color:var(--c-ink); }
+
+/* ---- 暗い面をやめる: ヒーロー ---- */
+.hero--overlay{ background:var(--c-base-2); }
+.hero--overlay .hero-scrim{
+  background:linear-gradient(100deg,rgba(255,254,247,.94) 0%,rgba(255,254,247,.88) 40%,rgba(255,254,247,.45) 70%,rgba(255,254,247,.15) 100%);
+}
+.hero--overlay h1{ color:var(--c-navy); }
+.hero--overlay .hero-eyebrow{ color:#6E8A2A; }
+.hero--overlay .hero-lead{ color:var(--c-ink); }
+.hero--overlay .btn-ghost{ border-color:var(--c-navy); color:var(--c-navy); background:rgba(255,255,255,.75); }
+.hero--overlay .btn-ghost:hover{ background:var(--c-navy); color:#fff; }
+.hero--overlay .hl::after{ background:linear-gradient(90deg,rgba(255,242,168,.95),rgba(168,216,91,.75)); }
+@media (max-width:767px){
+  .hero--overlay .hero-scrim{ background:linear-gradient(180deg,rgba(255,254,247,.92) 0%,rgba(255,254,247,.86) 55%,rgba(255,254,247,.94) 100%); }
+}
+
+/* ---- 暗い面をやめる: CTA帯・フォーム・フッター ---- */
+.cta,.apply,.site-foot{ background:linear-gradient(140deg,#F1F8DF 0%,#FFFBE8 100%); color:var(--c-ink); }
+.cta h2,.apply h2,.site-foot .serif{ color:var(--c-navy); }
+.cta p,.apply .lead,.apply-left .lead,.site-foot,.site-foot a{ color:var(--c-ink-2); }
+.cta .sec-label,.apply .sec-label{ color:var(--c-navy); }
+.cta .note,.form-note,.fld .hint,.site-foot .foot-tax,.site-foot .copyright{ color:var(--c-ink-3); }
+.cta .btn-primary,.apply .btn-primary{ background:var(--c-navy); color:#fff; border-color:var(--c-navy); }
+.cta .btn-primary:hover,.apply .btn-primary:hover{ background:var(--c-navy-deep); border-color:var(--c-navy-deep); }
+.cta .btn-ghost{ border-color:var(--c-navy); color:var(--c-navy); }
+.fld input[type=text],.fld input[type=email],.fld input[type=tel],.fld select,.fld textarea{ color:var(--c-ink); border-bottom-color:var(--c-line-strong); }
+.fld textarea{ border-color:var(--c-line-strong); }
+.fld > label,.fld legend,.consent,.fld--quiet > label,.fld--quiet legend{ color:var(--c-ink); }
+.checks label{ border-color:var(--c-line-strong); color:var(--c-ink); }
+.checks label:has(input:checked){ border-color:var(--c-navy); background:rgba(94,146,32,.10); }
+.site-foot nav a:hover,.foot-org a{ color:var(--c-navy); }
+.apply-card{ background:#fff; }
+.wm--navy{ opacity:.26; }
+.wm-scrim--navy{ background:linear-gradient(120deg,rgba(255,254,247,.86) 0%,rgba(255,254,247,.62) 55%,rgba(255,254,247,.40) 100%); }
+.cta-bar{ background:#FFFBE8; border-color:var(--c-line); }
+.cta-bar .btn-primary{ background:var(--c-navy); border-color:var(--c-navy); color:#fff; }
+@media (max-width:760px){ .cta-bar{ background:var(--c-navy); } .cta-bar .btn-primary{ background:transparent; border-color:transparent; } }
+
+
+/* ==========================================================================
+   2026-11-14 BOSS指示「文字は若干薄くした黒で」
+   見出し・本文を黄緑から“薄めの黒”へ。黄緑は罫・ボタン・ラベルなどの装飾に残す。
+   コントラスト: #3A3A3A on #FFFEF7 ≒ 10.9:1（AAA）
+   ========================================================================== */
+:root{ --c-ink:#3A3A3A; --c-ink-2:#5A5A5A; --c-ink-3:#7C7C7C; }
+body{ color:var(--c-ink); }
+h1,h2,h3,h4,.serif{ color:var(--c-ink); }
+.hero--overlay h1{ color:var(--c-ink); }
+.hero--overlay .hero-lead,.cta p,.apply .lead,.apply-left .lead{ color:var(--c-ink-2); }
+.cta h2,.apply h2,.site-foot .serif,.card h3,.zrow h3,.stairs .age{ color:var(--c-ink); }
+.tbl-note,.site-foot,.site-foot a{ color:var(--c-ink-2); }
+tbody th{ color:var(--c-ink); }
+.flow li::before,.tl-step{ color:var(--c-navy); }   /* 小さな装飾ラベルは黄緑のまま */
