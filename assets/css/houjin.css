@@ -1227,3 +1227,18 @@ table{ font-size:16px; }
   .hero--overlay h1{ font-size:clamp(32px,8vw,44px); }
   .hero--overlay .hero-lead{ font-size:clamp(16px,4vw,19px); }
 }
+
+
+/* ==========================================================================
+   2026-11-14 BOSS指示「番号の表示順番付けが分かりづらい」
+   章番号(01/02/03)＝大きな数字。セクション内の項目番号は「POINT 01」の小さなラベルにして
+   役割の違いが一目で分かるようにする。
+   ========================================================================== */
+.item-no{
+  display:inline-flex; align-items:center; gap:8px;
+  font-family:var(--f-latin); font-weight:600; font-size:13px; letter-spacing:.18em;
+  color:var(--c-navy); background:var(--c-band); border:1px solid var(--c-line);
+  border-radius:999px; padding:6px 14px; margin-bottom:var(--s-3);
+}
+.zrow .item-no{ margin-bottom:var(--s-4); }
+.zrow h3{ margin-top:0; }
